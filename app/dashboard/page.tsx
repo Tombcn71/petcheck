@@ -100,25 +100,46 @@ export default function PetCheck() {
     setLoading((l) => ({ ...l, [toolId]: true }));
     setResults((r) => ({ ...r, [toolId]: {} }));
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result as string;
-      setPreviews((p) => ({ ...p, [toolId]: base64 }));
+    // STAP 1: Verklein de afbeelding voor Vercel
+    const resizeImage = (file: File): Promise<string> => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800; // Genoeg voor AI, klein genoeg voor Vercel
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
 
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64, model }),
-        });
-        const data = await res.json();
-        setResults((r) => ({ ...r, [toolId]: data }));
-      } catch (err) {
-        setResults((r) => ({ ...r, [toolId]: { error: "Analysis failed" } }));
-      }
-      setLoading((l) => ({ ...l, [toolId]: false }));
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.7)); // 0.7 is 70% kwaliteit
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
     };
-    reader.readAsDataURL(file);
+
+    try {
+      const resizedBase64 = await resizeImage(file);
+      setPreviews((p) => ({ ...p, [toolId]: resizedBase64 }));
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: resizedBase64, model }),
+      });
+
+      const data = await res.json();
+      setResults((r) => ({ ...r, [toolId]: data }));
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setResults((r) => ({ ...r, [toolId]: { error: "Analysis failed" } }));
+    }
+    setLoading((l) => ({ ...l, [toolId]: false }));
   }
 
   function getStatusInfo(result: Result) {
