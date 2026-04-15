@@ -153,21 +153,26 @@ export default function PetCheck() {
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const base64 = reader.result as string;
-      setPreviews((p) => ({ ...p, [toolId]: base64 }));
+      const originalBase64 = reader.result as string;
 
       try {
+        // COMPRESSIE HIER:
+        const compressedBase64 = await compressImage(originalBase64);
+        setPreviews((p) => ({ ...p, [toolId]: compressedBase64 }));
+
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64, toolId }),
+          body: JSON.stringify({ image: compressedBase64, toolId }),
         });
+
         const data = await res.json();
         setResults((r) => ({ ...r, [toolId]: data }));
       } catch (err) {
+        console.error(err);
         setResults((r) => ({
           ...r,
-          [toolId]: { error: "Analysis failed. Please try again." },
+          [toolId]: { error: "Analysis failed. Image might be too large." },
         }));
       }
       setLoading((l) => ({ ...l, [toolId]: false }));
