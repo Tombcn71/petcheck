@@ -23,6 +23,26 @@ const features = [
     desc: "Check for fungal, bacterial & allergic reactions.",
   },
   {
+    icon: "⚖️",
+    title: "Body Condition",
+    desc: "Evaluate weight levels and ideal body shape scores.",
+  },
+  {
+    icon: "🤕",
+    title: "Pain Indicator",
+    desc: "Analyze facial expressions for signs of acute pain.",
+  },
+  {
+    icon: "✨",
+    title: "Coat Lustre",
+    desc: "Assess fur health, shine and nutritional vitality.",
+  },
+  {
+    icon: "🐶",
+    title: "Nose Analysis",
+    desc: "Check for hyperkeratosis, dryness and secretions.",
+  },
+  {
     icon: "🦟",
     title: "Fleas & Parasites",
     desc: "Spot hidden fleas and skin parasites instantly.",
@@ -33,7 +53,7 @@ const features = [
     desc: "Identify tick types and potential Lyme disease risk.",
   },
   {
-    icon: "🐕",
+    icon: "🦴",
     title: "Posture & Spine",
     desc: "Analyze body alignment for joint health monitoring.",
   },
@@ -79,7 +99,6 @@ export default function Home() {
         .nav-links { display: flex; gap: 24px; align-items: center; }
         .nav-links a { text-decoration: none; color: #6B6B8A; font-size: 14px; font-weight: 500; transition: color 0.2s; }
         
-        /* Hide nav links on mobile */
         @media (max-width: 640px) {
           .nav-links a:not(.btn-nav) { display: none; }
           .navbar { padding: 10px 16px; }
