@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
+// We gebruiken de initialisatie die bij jou werkte
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
@@ -19,7 +20,6 @@ const SYSTEM_PROMPTS: Record<string, string> = {
     "Vlooien/Parasieten: Zoek naar vlooienpoepjes (zwarte puntjes) of actieve insecten in de vacht.",
   mange:
     "Schurft & Ringworm: Zoek naar cirkelvormige haaruitval of extreme korstvorming en irritatie.",
-  // Posture is nu Ears geworden
   ears: "Ooranalyse: Kijk in de oorschelp. Zoek naar roodheid, overmatig donker oorsmeer (oormijt), gele afscheiding (infectie) of krabsporen/korstjes.",
 };
 
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     const instruction =
       SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
 
+    // Terug naar jouw model dat WEL werkte
     const result = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
@@ -43,10 +44,10 @@ export async function POST(req: Request) {
                      
                      Antwoord ALTIJD in het Nederlands en STRIKT in dit JSON formaat:
                      {
-                       "summary": "Korte krachtige status (bijv: Gezond, Actie vereist, Kritiek)",
+                       "summary": "Korte krachtige status",
                        "isOk": true of false,
-                       "details": "Wat zie je precies op de foto? Wees klinisch en nauwkeurig.",
-                       "advice": "Concreet advies voor het baasje. Moeten ze naar een arts?"
+                       "details": "Wat zie je precies op de foto?",
+                       "advice": "Concreet advies voor het baasje"
                      }`,
             },
             { inlineData: { mimeType: "image/jpeg", data: base64Data } },
@@ -65,10 +66,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Analysis Error:", error);
     return NextResponse.json(
-      {
-        error:
-          "De AI kon de foto niet verwerken. Controleer de afbeeldingsgrootte of belichting.",
-      },
+      { error: "De AI kon de foto niet verwerken." },
       { status: 500 },
     );
   }
