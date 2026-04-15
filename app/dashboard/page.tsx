@@ -2,7 +2,6 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 
-// De interface is nu simpeler en gericht op AI-uitleg
 interface Result {
   summary?: string;
   isOk?: boolean;
@@ -101,11 +100,12 @@ const tools = [
     color: "#C62828",
     bg: "#FCEBEB",
   },
+  // RUIL: Posture is nu Ears geworden
   {
-    id: "posture",
-    icon: "🦴",
-    title: "Posture Analysis",
-    description: "Detect joint & spine alignment issues",
+    id: "ears",
+    icon: "👂",
+    title: "Ear Analysis",
+    description: "Detect ear mites, infections & inflammation",
     color: "#00695C",
     bg: "#E1F5EE",
   },
@@ -129,12 +129,15 @@ export default function PetCheck() {
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64, toolId }), // We sturen nu toolId ipv model
+          body: JSON.stringify({ image: base64, toolId }),
         });
         const data = await res.json();
         setResults((r) => ({ ...r, [toolId]: data }));
       } catch (err) {
-        setResults((r) => ({ ...r, [toolId]: { error: "Analysis failed" } }));
+        setResults((r) => ({
+          ...r,
+          [toolId]: { error: "Analysis failed. Please try again." },
+        }));
       }
       setLoading((l) => ({ ...l, [toolId]: false }));
     };
@@ -155,18 +158,19 @@ export default function PetCheck() {
         .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; text-decoration: none; color: #1A1A2E; display: flex; align-items: center; gap: 8px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-        .card { background: #FFFFFF; border-radius: 24px; border: 1px solid #E8E8F0; padding: 24px; transition: all 0.2s; }
+        .card { background: #FFFFFF; border-radius: 24px; border: 1px solid #E8E8F0; padding: 24px; transition: all 0.2s; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
         .tool-head { display: flex; gap: 16px; margin-bottom: 20px; }
         .tool-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         .tool-info h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 4px; }
         .tool-info p { font-size: 13px; color: #8888AA; line-height: 1.4; }
-        .preview { width: 100%; aspect-ratio: 16/10; background: #F3F3FA; border-radius: 16px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #E8E8F0; }
+        .preview { width: 100%; aspect-ratio: 16/10; background: #F3F3FA; border-radius: 16px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #E8E8F0; position: relative; }
         .preview img { width: 100%; height: 100%; object-fit: cover; }
-        .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .result-box { margin-top: 16px; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; border: 1px solid; font-size: 14px; }
-        .ai-details { margin-top: 12px; font-size: 13px; color: #4A4A68; line-height: 1.5; }
-        .ai-advice { margin-top: 10px; padding: 12px; background: #F9FAFB; border-radius: 10px; border: 1px solid #E8E8F0; font-size: 12px; color: #1A1A2E; }
+        .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .result-box { margin-top: 16px; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; border: 1px solid; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ai-details { margin-top: 12px; font-size: 13px; color: #4A4A68; line-height: 1.5; padding: 0 4px; }
+        .ai-advice { margin-top: 10px; padding: 12px; background: #F9FAFB; border-radius: 10px; border: 1px solid #E8E8F0; font-size: 12px; color: #1A1A2E; border-left: 4px solid #1A1A2E; }
+        .loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: 700; color: #1A1A2E; }
       `}</style>
 
       <nav className="navbar">
@@ -186,10 +190,15 @@ export default function PetCheck() {
 
       <main className="container">
         <header style={{ marginBottom: "40px" }}>
-          <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "32px" }}>
+          <h1
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              fontSize: "36px",
+              marginBottom: "8px",
+            }}>
             Medical Dashboard
           </h1>
-          <p style={{ color: "#6B6B8A" }}>
+          <p style={{ color: "#6B6B8A", fontSize: "18px" }}>
             AI-powered health diagnostics for your dog.
           </p>
         </header>
@@ -213,17 +222,19 @@ export default function PetCheck() {
                 </div>
 
                 <div className="preview">
-                  {preview ? (
-                    <img src={preview} alt="Preview" />
-                  ) : (
+                  {preview && <img src={preview} alt="Preview" />}
+                  {!preview && !isLoading && (
                     <div
                       style={{
                         color: "#AAAACC",
                         textAlign: "center",
-                        fontSize: "12px",
+                        fontSize: "13px",
                       }}>
                       📸 Upload photo
                     </div>
+                  )}
+                  {isLoading && (
+                    <div className="loader-overlay">Scanning...</div>
                   )}
                 </div>
 
@@ -243,11 +254,12 @@ export default function PetCheck() {
                 <button
                   className="action-btn"
                   style={{ background: tool.bg, color: tool.color }}
-                  onClick={() => fileRefs.current[tool.id]?.click()}>
+                  onClick={() => fileRefs.current[tool.id]?.click()}
+                  disabled={isLoading}>
                   {isLoading
-                    ? "AI is thinking..."
+                    ? "Analyzing..."
                     : preview
-                      ? "Change Photo"
+                      ? "Scan New Photo"
                       : "Start Scan"}
                 </button>
 
@@ -264,7 +276,7 @@ export default function PetCheck() {
                     </div>
 
                     <div className="ai-details">
-                      <strong>Analysis:</strong> {res.details}
+                      <strong>Observation:</strong> {res.details}
                     </div>
 
                     {res.advice && (
@@ -274,10 +286,15 @@ export default function PetCheck() {
                     )}
                   </div>
                 )}
+
                 {res?.error && (
                   <div
                     className="result-box"
-                    style={{ background: "#FCEBEB", color: "#C62828" }}>
+                    style={{
+                      background: "#FCEBEB",
+                      color: "#C62828",
+                      borderColor: "#F7C1C1",
+                    }}>
                     {res.error}
                   </div>
                 )}
