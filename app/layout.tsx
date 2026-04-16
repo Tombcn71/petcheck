@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next"; // Viewport toegevoegd
 import {
   ClerkProvider,
   Show,
@@ -16,9 +16,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// PWA Instellingen in de Metadata
 export const metadata: Metadata = {
   title: "PetCheck.ai - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
+  manifest: "/manifest.json", // Koppel je manifest.json uit de public map
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PetCheck.ai",
+  },
+};
+
+// Viewport instellingen (vervangt oude theme-color meta tags)
+export const viewport: Viewport = {
+  themeColor: "#4FC3F7",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
