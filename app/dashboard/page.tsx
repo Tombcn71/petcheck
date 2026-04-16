@@ -1,76 +1,41 @@
 "use client";
-import Link from "next/link";
 
-const stats = [
-  { label: "Laatste Scan", value: "2 dagen geleden" },
-  { label: "Gezondheidsstatus", value: "Uitstekend ✨" },
-  { label: "Actieve meldingen", value: "Geen" },
-];
+import React from "react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link"; // Vergeet deze import niet
 
 export default function Dashboard() {
   return (
-    <div className="dashboard-container">
+    <div className="max-w-6xl">
       <style>{`
-        .dashboard-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .welcome-header { margin-bottom: 40px; }
-        .welcome-header h1 { font-family: 'Syne', sans-serif; font-size: 32px; margin-bottom: 8px; }
-        .welcome-header p { color: #6B6B8A; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: #F9FAFB; padding: 20px; border-radius: 16px; border: 1px solid #F3F4F6; }
-        .stat-card span { font-size: 13px; color: #6B6B8A; display: block; margin-bottom: 4px; }
-        .stat-card strong { font-size: 18px; color: #1A1A2E; }
-
-        .action-card { 
-          background: #1A1A2E; color: white; padding: 40px; border-radius: 24px; 
-          display: flex; justify-content: space-between; align-items: center;
-          margin-bottom: 40px;
-        }
-        .btn-scan { 
-          background: #4FC3F7; color: #1A1A2E; padding: 16px 32px; 
-          border-radius: 12px; font-weight: 700; text-decoration: none; 
-        }
+        h1 { font-family: 'Syne', sans-serif; }
+        .text-brand-light { color: #4FC3F7; }
+        .bg-brand-button { background: #1A1A2E; }
+        .badge-brand { background: #E6F1FB; color: #0288D1; }
       `}</style>
 
-      <header className="welcome-header">
-        <h1>Welkom terug, Buddy 🐾</h1>
-        <p>Hier is de actuele gezondheid van je hond.</p>
-      </header>
-
-      <div className="stats-grid">
-        {stats.map((s, i) => (
-          <div className="stat-card" key={i}>
-            <span>{s.label}</span>
-            <strong>{s.value}</strong>
+      <section className="bg-white rounded-[2rem] border border-slate-100 p-10 md:p-16 shadow-sm">
+        <div className="max-w-2xl text-left">
+          <div className="badge-brand inline-block px-4 py-1.5 rounded-full text-[12px] font-bold uppercase tracking-wider mb-6">
+            Next-Gen Veterinary AI
           </div>
-        ))}
-      </div>
 
-      <div className="action-card">
-        <div>
-          <h2>Nieuwe Gezondheidscheck</h2>
-          <p style={{ opacity: 0.8 }}>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-[#1A1A2E] tracking-tighter leading-[1.05] mb-8">
+            Nieuwe <br />
+            <span className="text-brand-light">Gezondheidscheck</span>
+          </h1>
+
+          <p className="text-[#6B6B8A] text-xl font-medium mb-10 leading-relaxed max-w-md">
             Scan ogen, gebit, huid of ontlasting in seconden.
           </p>
-        </div>
-        <Link href="/check" className="btn-scan">
-          Start Diagnose →
-        </Link>
-      </div>
 
-      <section>
-        <h3 style={{ marginBottom: "20px", fontFamily: "Syne" }}>
-          Recente Historie
-        </h3>
-        <div
-          style={{
-            color: "#6B6B8A",
-            textAlign: "center",
-            padding: "40px",
-            background: "#F9FAFB",
-            borderRadius: "16px",
-          }}>
-          Nog geen eerdere scans gevonden.
+          {/* Nu een Link in plaats van een button */}
+          <Link
+            href="/dashboard/check"
+            className="bg-brand-button hover:opacity-90 text-white px-10 py-6 rounded-2xl font-bold text-lg transition-all flex items-center gap-4 w-fit">
+            Start Gratis Check
+            <ArrowRight size={22} />
+          </Link>
         </div>
       </section>
     </div>

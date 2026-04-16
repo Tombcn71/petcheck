@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Show, SignUpButton } from "@clerk/nextjs";
-
+import Pricing from "@/components/Pricing";
+import Faq from "@/components/Faq";
 const features = [
   {
     icon: "👁️",
@@ -67,97 +68,90 @@ const features = [
 
 export default function Home() {
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #FFFFFF; color: #1A1A2E; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
-        
-        .hero { max-width: 1200px; margin: 0 auto; padding: 100px 20px; text-align: center; }
-        .badge { display: inline-block; padding: 6px 12px; background: #E6F1FB; color: #0288D1; border-radius: 100px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-        h1 { font-family: 'Syne', sans-serif; font-size: clamp(40px, 10vw, 72px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 24px; }
-        h1 span { color: #4FC3F7; }
-        .description { font-size: 19px; color: #6B6B8A; max-width: 600px; margin: 0 auto 40px; line-height: 1.6; }
-        
-        .btn-primary { 
-          background: #1A1A2E; 
-          color: #FFFFFF; 
-          padding: 18px 40px; 
-          border-radius: 14px; 
-          font-weight: 700; 
-          text-decoration: none; 
-          font-size: 18px; 
-          display: inline-block; 
-          transition: transform 0.2s; 
-          border: none; 
-          cursor: pointer; 
-        }
-        .btn-primary:hover { transform: scale(1.05); }
-        
-        .feature-section { padding: 80px 20px; background: #F9FAFB; }
-        .section-label { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 48px; text-align: center; letter-spacing: -1px; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .feat-card { background: #FFFFFF; padding: 32px; border-radius: 24px; border: 1px solid #E5E7EB; text-align: left; transition: all 0.3s; }
-        .feat-card:hover { border-color: #4FC3F7; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .icon-box { font-size: 32px; margin-bottom: 20px; }
-        .feat-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-        .feat-card p { color: #6B6B8A; font-size: 14px; line-height: 1.6; }
-        
-        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #F3F4F6; color: #AAAAAA; font-size: 12px; line-height: 1.8; }
-        .footer-logo { font-family: 'Syne', sans-serif; font-weight: 800; color: #1A1A2E; font-size: 16px; margin-bottom: 16px; display: block; text-decoration: none; }
+    <div className="bg-white text-[#1A1A2E] font-sans overflow-x-hidden">
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500;700&display=swap");
       `}</style>
+      {/* HERO SECTION */}
+      <main className="max-w-[1200px] mx-auto px-5 py-24 text-center">
+        <div className="inline-block px-3 py-1 bg-[#E6F1FB] text-[#0288D1] rounded-full text-xs font-semibold mb-5">
+          Next-Gen Veterinary AI
+        </div>
 
-      {/* Navbar is nu weg uit de homepage omdat hij in layout.tsx staat */}
-
-      <main className="hero">
-        <div className="badge">Next-Gen Veterinary AI</div>
-        <h1>
+        <h1
+          className="text-2xl md:text-5xl font-extrabold uppercase tracking-tighter leading-[1.05] mb-6"
+          style={{ fontFamily: "'Syne', sans-serif" }}>
           Zorg voor je hond, <br />
-          <span>simpel gemaakt.</span>
+          <span className="text-[#4FC3F7]">simpel gemaakt.</span>
         </h1>
-        <p className="description">
+
+        <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[600px] mx-auto mb-10 leading-relaxed">
           De meest geavanceerde AI-tool voor hondenbezitters in Nederland.
           Analyseer symptomen en welzijn direct vanaf een foto.
         </p>
 
-        <Show when="signed-out">
-          <SignUpButton mode="modal">
-            <button className="btn-primary">Start Gratis Check →</button>
-          </SignUpButton>
-        </Show>
+        <div className="flex justify-center">
+          <Show when="signed-out">
+            <SignUpButton mode="modal">
+              <button className="bg-[#1A1A2E] text-white px-10 py-4.5 rounded-[14px] font-bold text-lg hover:scale-105 transition-transform">
+                Start Gratis Check →
+              </button>
+            </SignUpButton>
+          </Show>
 
-        <Show when="signed-in">
-          <Link href="/dashboard" className="btn-primary">
-            Naar mijn Dashboard →
-          </Link>
-        </Show>
+          <Show when="signed-in">
+            <Link
+              href="/dashboard"
+              className="bg-[#1A1A2E] text-white px-10 py-4.5 rounded-[14px] font-bold text-lg hover:scale-105 transition-transform inline-block">
+              Naar mijn Dashboard →
+            </Link>
+          </Show>
+        </div>
       </main>
+      {/* FEATURE SECTION */}
+      <section className="bg-[#F9FAFB] py-20 px-5">
+        <div className="max-w-[1200px] mx-auto">
+          <h2
+            className="text-2xl md:text-xl font-extrabold uppercase text-center mb-12 tracking-tight"
+            style={{ fontFamily: "'Syne', sans-serif" }}>
+            Medische Mogelijkheden
+          </h2>
 
-      <section className="feature-section" id="features">
-        <div className="feature-container">
-          <h2 className="section-label">Medische Mogelijkheden</h2>
-          <div className="grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {features.map((f, i) => (
-              <div className="feat-card" key={i}>
-                <div className="icon-box">{f.icon}</div>
-                <h3>{f.title}</h3>
-                <p>{f.desc}</p>
+              <div
+                key={i}
+                className="bg-white p-8 rounded-[24px] border border-[#E5E7EB] hover:border-[#4FC3F7] hover:shadow-xl transition-all duration-300 group">
+                <div className="text-3xl mb-5 group-hover:scale-110 transition-transform inline-block">
+                  {f.icon}
+                </div>
+                <h3
+                  className="text-sm font-bold mb-2 uppercase tracking-tight font-syne"
+                  style={{ fontFamily: "'Syne', sans-serif" }}>
+                  {f.title}
+                </h3>
+                <p className="text-[#6B6B8A] text-sm leading-relaxed">
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      <footer>
-        <Link href="/" className="footer-logo">
+      <Pricing /> <Faq />
+      {/* FOOTER */}
+      <footer className="py-14 px-5 text-center border-t border-[#F3F4F6]">
+        <Link
+          href="/"
+          className="inline-block text-base font-extrabold uppercase mb-4 text-[#1A1A2E]"
+          style={{ fontFamily: "'Syne', sans-serif" }}>
           🐾 PetCheck.ai
         </Link>
-        <p>
+        <p className="text-[#AAAAAA] text-xs leading-relaxed">
           © 2026 PetCheck AI. Voor informatieve doeleinden. <br />
           Vervangt geen professioneel dierenartsadvies.
         </p>
       </footer>
-    </>
+    </div>
   );
 }

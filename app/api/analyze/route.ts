@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { put } from "@vercel/blob";
+import { neon } from "@neondatabase/serverless";
+import { auth } from "@clerk/nextjs/server";
 
-// We gebruiken de initialisatie die bij jou werkte
+// Initialisatie van de AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
@@ -25,13 +28,28 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const { image, toolId } = await req.json();
-    const base64Data = image.split(",")[1];
+    // 1. Auth check
+    const { userId } = await auth();
+    if (!userId)
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
+    // 2. Input check
+    const { image, toolId } = await req.json();
+    if (!image)
+      return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
+
+    const base64Data = image.split(",")[1];
+    const buffer = Buffer.from(base64Data, "base64");
     const instruction =
       SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
 
-    // Terug naar jouw model dat WEL werkte
+    // 3. Blob Upload (Foto opslaan)
+    const blob = await put(`scans/${userId}/${Date.now()}.jpg`, buffer, {
+      access: "public",
+      contentType: "image/jpeg",
+    });
+
+    // 4. AI Analyse
     const result = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
@@ -41,14 +59,8 @@ export async function POST(req: Request) {
             {
               text: `Jij bent een AI Veterinaire Expert. 
                      Opdracht: ${instruction}
-                     
-                     Antwoord ALTIJD in het Nederlands en STRIKT in dit JSON formaat:
-                     {
-                       "summary": "Korte krachtige status",
-                       "isOk": true of false,
-                       "details": "Wat zie je precies op de foto?",
-                       "advice": "Concreet advies voor het baasje"
-                     }`,
+                     Antwoord in het Nederlands. 
+                     STRIKT JSON FORMAAT: {"summary": "string", "isOk": boolean, "details": "string", "advice": "string"}`,
             },
             { inlineData: { mimeType: "image/jpeg", data: base64Data } },
           ],
@@ -59,14 +71,32 @@ export async function POST(req: Request) {
       },
     });
 
-    const responseText = result.text;
-    if (!responseText) throw new Error("Lege response");
+    const rawText = result.text;
+    if (!rawText) throw new Error("Lege response van AI");
 
-    return NextResponse.json(JSON.parse(responseText));
+    // VEILIGE PARSING: Verwijder Markdown blokken en witruimte
+    const cleanJsonString = rawText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+    const aiData = JSON.parse(cleanJsonString);
+
+    // 5. Database Opslag
+    const sql = neon(process.env.DATABASE_URL!);
+    try {
+      await sql`
+        INSERT INTO scans (user_id, tool_id, image_url, summary, is_ok, details, advice) 
+        VALUES (${userId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
+      `;
+    } catch (dbError) {
+      console.error("DB Save Skip (Local):", dbError);
+    }
+
+    return NextResponse.json(aiData);
   } catch (error: any) {
-    console.error("Analysis Error:", error);
+    console.error("Final API Error:", error);
     return NextResponse.json(
-      { error: "De AI kon de foto niet verwerken." },
+      { error: "Fout bij verwerken: " + error.message },
       { status: 500 },
     );
   }

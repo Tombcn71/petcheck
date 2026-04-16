@@ -180,8 +180,8 @@ export default function CheckPage() {
         .disclaimer { margin-top: 40px; text-align: center; font-size: 12px; color: #AAAAAA; max-width: 800px; margin-inline: auto; line-height: 1.6; }
       `}</style>
 
-      <main className="container">
-        <header style={{ marginBottom: "40px" }}>
+      <main className="container ml-16 lg:ml-2">
+        <header style={{ marginBottom: "40px", marginLeft: "60px" }}>
           <Link
             href="/dashboard"
             style={{
@@ -206,7 +206,7 @@ export default function CheckPage() {
           </p>
         </header>
 
-        <div className="grid">
+        <div className="grid ml-6 lg:ml-0">
           {tools.map((tool) => {
             const res = results[tool.id];
             const isLoading = loading[tool.id];
