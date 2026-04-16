@@ -1,0 +1,16 @@
+{
+  "name": "PetCheck AI Scanner",
+  "short_name": "PetCheck",
+  "description": "Scan je hond op 12+ ziektebeelden",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4FC3F7",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/194/194279.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

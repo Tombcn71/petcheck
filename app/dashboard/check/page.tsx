@@ -172,7 +172,9 @@ export default function CheckPage() {
         .tool-info p { font-size: 13px; color: #8888AA; line-height: 1.4; }
         .preview { width: 100%; aspect-ratio: 16/10; background: #F3F3FA; border-radius: 16px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #E8E8F0; position: relative; }
         .preview img { width: 100%; height: 100%; object-fit: cover; }
-        .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px; display: flex; items-center; justify-content: center; gap: 8px; }
+        .secondary-btn { background: #FFFFFF; border: 1.5px solid #E8E8F0; color: #6B6B8A; }
         .result-box { margin-top: 16px; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; border: 1px solid; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         .ai-details { margin-top: 12px; font-size: 13px; color: #4A4A68; line-height: 1.5; padding: 0 4px; }
         .ai-advice { margin-top: 10px; padding: 12px; background: #F9FAFB; border-radius: 10px; border: 1px solid #E8E8F0; font-size: 12px; color: #1A1A2E; border-left: 4px solid #1A1A2E; }
@@ -180,8 +182,8 @@ export default function CheckPage() {
         .disclaimer { margin-top: 40px; text-align: center; font-size: 12px; color: #AAAAAA; max-width: 800px; margin-inline: auto; line-height: 1.6; }
       `}</style>
 
-      <main className="container ml-16 lg:ml-2">
-        <header style={{ marginBottom: "40px", marginLeft: "60px" }}>
+      <main className="container">
+        <header style={{ marginBottom: "40px" }}>
           <Link
             href="/dashboard"
             style={{
@@ -206,7 +208,7 @@ export default function CheckPage() {
           </p>
         </header>
 
-        <div className="grid ml-6 lg:ml-0">
+        <div className="grid">
           {tools.map((tool) => {
             const res = results[tool.id];
             const isLoading = loading[tool.id];
@@ -227,13 +229,8 @@ export default function CheckPage() {
                 <div className="preview">
                   {preview && <img src={preview} alt="Preview" />}
                   {!preview && !isLoading && (
-                    <div
-                      style={{
-                        color: "#AAAACC",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}>
-                      📸 Upload foto
+                    <div style={{ color: "#AAAACC", fontSize: "13px" }}>
+                      Maak of kies een foto
                     </div>
                   )}
                   {isLoading && (
@@ -241,12 +238,26 @@ export default function CheckPage() {
                   )}
                 </div>
 
+                {/* Verborgen inputs per tool */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  style={{ display: "none" }}
+                  ref={(el) => {
+                    fileRefs.current[`${tool.id}-cam`] = el;
+                  }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) analyze(tool.id, file);
+                  }}
+                />
                 <input
                   type="file"
                   accept="image/*"
                   style={{ display: "none" }}
                   ref={(el) => {
-                    fileRefs.current[tool.id] = el;
+                    fileRefs.current[`${tool.id}-gal`] = el;
                   }}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -254,17 +265,21 @@ export default function CheckPage() {
                   }}
                 />
 
-                <button
-                  className="action-btn"
-                  style={{ background: tool.bg, color: tool.color }}
-                  onClick={() => fileRefs.current[tool.id]?.click()}
-                  disabled={isLoading}>
-                  {isLoading
-                    ? "Bezig..."
-                    : preview
-                      ? "Nieuwe Foto"
-                      : "Start Analyse"}
-                </button>
+                <div className="btn-group">
+                  <button
+                    className="action-btn"
+                    style={{ background: tool.color, color: "#FFF" }}
+                    onClick={() => fileRefs.current[`${tool.id}-cam`]?.click()}
+                    disabled={isLoading}>
+                    📸 {isLoading ? "Laden..." : "Camera"}
+                  </button>
+                  <button
+                    className="action-btn secondary-btn"
+                    onClick={() => fileRefs.current[`${tool.id}-gal`]?.click()}
+                    disabled={isLoading}>
+                    📁 Galerij
+                  </button>
+                </div>
 
                 {res && !isLoading && !res.error && (
                   <div className="results-container">
@@ -277,11 +292,9 @@ export default function CheckPage() {
                       }}>
                       {res.summary}
                     </div>
-
                     <div className="ai-details">
                       <strong>Inzicht:</strong> {res.details}
                     </div>
-
                     {res.advice && (
                       <div className="ai-advice">
                         <strong>AI Advies:</strong> {res.advice}
@@ -289,27 +302,11 @@ export default function CheckPage() {
                     )}
                   </div>
                 )}
-
-                {res?.error && (
-                  <div
-                    className="result-box"
-                    style={{
-                      background: "#FCEBEB",
-                      color: "#C62828",
-                      borderColor: "#F7C1C1",
-                    }}>
-                    {res.error}
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
-
-        <p className="disclaimer">
-          Let op: Deze check is een AI-ondersteuning en vervangt geen
-          professioneel dierenartsadvies.
-        </p>
+        <p className="disclaimer">Let op: AI vervangt geen dierenarts.</p>
       </main>
     </div>
   );
