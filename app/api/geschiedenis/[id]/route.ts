@@ -1,14 +1,14 @@
-// app/api/geschiedenis/[id]/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  // FIX: params moet hier gedefinieerd worden als een Promise
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Await de params (Belangrijk in de nieuwere Next.js versies)
-    const { id } = await params;
+    // 1. Await de params van de context
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json({ error: "Geen ID opgegeven" }, { status: 400 });
@@ -16,8 +16,7 @@ export async function DELETE(
 
     const sql = neon(process.env.DATABASE_URL!);
 
-    // 2. Voer de delete uit en check of er echt iets verwijderd is
-    // We gebruiken 'RETURNING id' om te zien of de database daadwerkelijk een match vond
+    // 2. Voer de delete uit
     const result = await sql`
       DELETE FROM scans 
       WHERE id = ${id} 
