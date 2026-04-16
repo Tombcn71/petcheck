@@ -13,7 +13,10 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* Je overige opties hier */
+  // We laten experimental leeg of halen het weg om TS fouten te voorkomen
+  webpack: (config) => {
+    return config;
+  },
 };
 
 export default withPWA(nextConfig);
