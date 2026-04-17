@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // 1. Importeer de pathname hook
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,135 +12,140 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, PawPrint, ArrowRight } from "lucide-react";
+import { Menu, PawPrint, X } from "lucide-react";
 
 export default function Navbar() {
+  const pathname = usePathname(); // 2. Haal de huidige route op
+  const isDashboard = pathname?.startsWith("/dashboard"); // 3. Check of je in dashboard bent
+
   return (
-    <header className="sticky top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-[100]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center h-20">
+    <header className="sticky top-0 w-full bg-white border-b border-slate-100 z-[120]">
+      <div className="w-full px-6 lg:px-10">
+        <div className="flex justify-between items-center h-16">
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="bg-[#4FC3F7] text-white w-10 h-10 flex items-center justify-center rounded-xl shadow-lg shadow-[#4FC3F7]/20 group-hover:rotate-12 transition-transform">
-              <PawPrint fill="currentColor" size={22} />
+            <div className="bg-[#4FC3F7] text-white w-9 h-9 flex items-center justify-center rounded-xl shadow-sm">
+              <PawPrint fill="currentColor" size={20} />
             </div>
-            <span
-              className="font-black text-xl tracking-tighter text-[#1A1A2E] uppercase italic"
-              style={{ fontFamily: "'Syne', sans-serif" }}>
+            <span className="font-heading  font-extrabold text-[#1A1A2E] tracking-tighter text-lg uppercase">
               PetCheck<span className="text-[#4FC3F7]">.ai</span>
             </span>
           </Link>
 
-          {/* DESKTOP NAV */}
-          <div className="hidden md:flex items-center gap-8">
-            <nav className="flex items-center gap-8 mr-4">
+          {/* DESKTOP NAV: Alleen tonen als NIET in dashboard */}
+          {!isDashboard && (
+            <nav className="hidden md:flex items-center gap-8 text-slate-500 font-bold text-xs uppercase tracking-widest">
               <a
                 href="#features"
-                className="text-slate-500 font-bold hover:text-[#4FC3F7] transition-colors text-[11px] uppercase tracking-widest">
-                Mogelijkheden
+                className="hover:text-[#4FC3F7] transition-colors">
+                Features
+              </a>
+              <a
+                href="#pricing"
+                className="hover:text-[#4FC3F7] transition-colors">
+                Prijzen
+              </a>
+              <a href="#faq" className="hover:text-[#4FC3F7] transition-colors">
+                FAQ
               </a>
             </nav>
+          )}
 
+          <div className="flex items-center gap-3">
+            {/* AUTH SECTIE */}
             <Show when="signed-out">
-              <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-4">
                 <SignInButton mode="modal">
-                  <Button
-                    variant="ghost"
-                    className="font-bold text-slate-700 hover:text-[#4FC3F7] text-xs uppercase tracking-widest">
+                  <button className="font-bold text-slate-700 text-xs uppercase tracking-widest">
                     Inloggen
-                  </Button>
+                  </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <Button className="bg-[#1A1A2E] hover:bg-black text-white px-6 h-11 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md">
-                    Start nu <ArrowRight className="ml-2 w-4 h-4" />
+                  <Button className="bg-[#1A1A2E] text-white px-6 h-10 rounded-xl font-bold uppercase text-[10px] tracking-widest">
+                    Start nu
                   </Button>
                 </SignUpButton>
               </div>
             </Show>
 
             <Show when="signed-in">
-              <div className="flex items-center gap-6">
-                <Link href="/dashboard">
-                  <Button className="bg-[#1A1A2E] hover:bg-black text-white px-6 h-11 rounded-xl font-bold text-xs uppercase tracking-widest">
-                    Dashboard <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                </Link>
+              <div className="flex items-center gap-4">
+                {/* Dashboard knop alleen tonen op homepage */}
+                {!isDashboard && (
+                  <Link href="/dashboard" className="hidden md:block">
+                    <Button className="bg-[#1A1A2E] text-white px-6 h-10 rounded-xl font-bold uppercase text-[10px] tracking-widest">
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
                 <UserButton
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox:
-                        "w-10 h-10 border-2 border-[#4FC3F7]/20 hover:border-[#4FC3F7] transition-all",
-                    },
-                  }}
+                  appearance={{ elements: { userButtonAvatarBox: "w-8 h-8" } }}
                 />
               </div>
             </Show>
-          </div>
 
-          {/* MOBIEL MENU TRIGGER */}
-          <div className="md:hidden flex items-center gap-4">
-            <Show when="signed-in">
-              <UserButton
-                appearance={{ elements: { userButtonAvatarBox: "w-9 h-9" } }}
-              />
-            </Show>
+            {/* MOBIEL MENU: Verberg hamburger volledig in dashboard */}
+            {!isDashboard && (
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="p-0 h-auto w-auto bg-transparent border-none outline-none focus:ring-0">
+                      <Menu
+                        size={28}
+                        strokeWidth={2.5}
+                        className="text-[#1A1A2E]"
+                      />
+                    </Button>
+                  </SheetTrigger>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-[#1A1A2E]">
-                  <Menu size={28} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="top"
-                className="w-full h-auto p-8 rounded-b-[2.5rem] border-none shadow-2xl">
-                <SheetHeader className="mb-8 text-left">
-                  <SheetTitle
-                    className="font-black italic text-xl tracking-tighter"
-                    style={{ fontFamily: "'Syne', sans-serif" }}>
-                    <span className="text-[#4FC3F7] not-italic inline-block mr-2">
-                      🐾
-                    </span>{" "}
-                    PETCHECK
-                  </SheetTitle>
-                </SheetHeader>
+                  <SheetContent
+                    side="right"
+                    className="w-64 !bg-white p-0 border-l border-slate-100 shadow-xl flex flex-col fixed top-16 h-[calc(100vh-64px)] z-[110]">
+                    <SheetHeader className="sr-only">
+                      <SheetTitle>Navigatiemenu</SheetTitle>
+                    </SheetHeader>
 
-                <div className="flex flex-col gap-6">
-                  <a
-                    href="#features"
-                    className="text-lg font-black uppercase italic text-slate-700 tracking-tight">
-                    Mogelijkheden
-                  </a>
+                    <div className="p-8 flex flex-col gap-6 flex-1 text-right items-end pt-10">
+                      <a
+                        href="#features"
+                        className="text-sm font-bold uppercase tracking-widest text-[#1A1A2E] hover:text-[#4FC3F7] py-2">
+                        Features
+                      </a>
+                      <a
+                        href="#pricing"
+                        className="text-sm font-bold uppercase tracking-widest text-[#1A1A2E] hover:text-[#4FC3F7] py-2">
+                        Prijzen
+                      </a>
+                      <a
+                        href="#faq"
+                        className="text-sm font-bold uppercase tracking-widest text-[#1A1A2E] hover:text-[#4FC3F7] py-2">
+                        FAQ
+                      </a>
 
-                  <Show when="signed-out">
-                    <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
-                      <SignInButton mode="modal">
-                        <Button
-                          variant="outline"
-                          className="w-full h-14 rounded-2xl font-bold uppercase tracking-widest">
-                          Inloggen
-                        </Button>
-                      </SignInButton>
-                      <SignUpButton mode="modal">
-                        <Button className="w-full h-14 bg-[#1A1A2E] text-white rounded-2xl font-bold uppercase tracking-widest">
-                          Start nu Gratis Check
-                        </Button>
-                      </SignUpButton>
+                      <div className="mt-auto pb-10 w-full flex flex-col gap-6 items-end">
+                        <Show when="signed-out">
+                          <SignInButton mode="modal">
+                            <button className="text-sm font-bold uppercase tracking-widest text-slate-500 py-2">
+                              Inloggen
+                            </button>
+                          </SignInButton>
+                        </Show>
+                        <div className="pt-4">
+                          <SheetTrigger asChild>
+                            <button className="text-black outline-none">
+                              <X size={32} strokeWidth={3} />
+                            </button>
+                          </SheetTrigger>
+                        </div>
+                      </div>
                     </div>
-                  </Show>
-
-                  <Show when="signed-in">
-                    <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
-                      <Link href="/dashboard" className="w-full">
-                        <Button className="w-full h-14 bg-[#1A1A2E] text-white rounded-2xl font-bold uppercase tracking-widest">
-                          Naar Dashboard
-                        </Button>
-                      </Link>
-                    </div>
-                  </Show>
-                </div>
-              </SheetContent>
-            </Sheet>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            )}
           </div>
         </div>
       </div>

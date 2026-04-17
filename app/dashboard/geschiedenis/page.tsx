@@ -107,15 +107,10 @@ export default function Geschiedenis() {
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <header className="mb-10">
-          <Link
-            href="/dashboard"
-            className="text-[#4FC3F7] flex items-center gap-2 font-bold mb-4 text-xs italic hover:gap-3 transition-all w-fit uppercase tracking-widest">
-            <ArrowLeft size={14} /> Dashboard
-          </Link>
           <h1
-            className="text-4xl md:text-6xl font-black italic uppercase text-[#1A1A2E] leading-none tracking-tighter"
+            className="text-4xl md:text-6xl font-black  uppercase text-[#1A1A2E] leading-none tracking-tighter"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            Scan <span className="text-[#4FC3F7]">Logboek</span>
+            Scan <span className="text-[#4FC3F7]">Geschiedenis</span>
           </h1>
         </header>
 

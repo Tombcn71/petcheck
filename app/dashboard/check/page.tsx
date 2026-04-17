@@ -156,13 +156,8 @@ export default function CheckPage() {
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12">
       <main className="max-w-7xl mx-auto">
         <header className="mb-10">
-          <Link
-            href="/dashboard"
-            className="text-slate-400 hover:text-slate-600 text-sm font-bold uppercase tracking-widest transition-colors">
-            ← Dashboard
-          </Link>
           <h1
-            className="text-4xl font-black italic uppercase tracking-tighter mt-4"
+            className="text-4xl font-black  uppercase tracking-tighter mt-4"
             style={{ fontFamily: "'Syne', sans-serif" }}>
             Honden<span className="text-[#4FC3F7]">Check</span>
           </h1>

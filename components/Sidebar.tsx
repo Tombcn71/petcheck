@@ -1,104 +1,159 @@
 "use client";
 
-import * as React from "react";
-import {
-  LayoutDashboard,
-  History,
-  User,
-  Settings,
-  LogOut,
-  PlusCircle,
-  PawPrint,
-  ChevronRight,
-} from "lucide-react";
+import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton, SignOutButton } from "@clerk/nextjs";
-
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Menu, PawPrint, ArrowRight, X } from "lucide-react";
 
-const sidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Nieuwe Check", href: "/dashboard/check", icon: PlusCircle },
-  { name: "Geschiedenis", href: "/dashboard/geschiedenis", icon: History },
-  { name: "Profiel", href: "/dashboard/profiel", icon: User },
-  { name: "Instellingen", href: "/dashboard/instellingen", icon: Settings },
-];
-
-export default function AppSidebar() {
-  const pathname = usePathname();
-
+export default function Navbar() {
   return (
-    <Sidebar collapsible="icon" className="border-r border-slate-100">
-      {/* BOVENKANT: LOGO */}
-      <SidebarHeader className="h-16 flex items-center justify-center border-b border-slate-50">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-[#4FC3F7] p-1.5 rounded-lg text-white">
-            <PawPrint size={20} fill="currentColor" />
-          </div>
-          <span className="font-black italic tracking-tighter text-[#1A1A2E] group-data-[collapsible=icon]:hidden">
-            PETCHECK
-          </span>
-        </Link>
-      </SidebarHeader>
-
-      {/* MIDDEN: MENU ITEMS */}
-      <SidebarContent className="px-2 py-4">
-        <SidebarMenu>
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  asChild
-                  tooltip={item.name}
-                  isActive={isActive}
-                  className={`h-11 transition-all ${
-                    isActive
-                      ? "bg-[#E6F1FB] text-[#0288D1] hover:bg-[#E6F1FB] hover:text-[#0288D1]"
-                      : "text-slate-500 hover:bg-slate-50"
-                  }`}>
-                  <Link href={item.href}>
-                    <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className="font-bold">{item.name}</span>
-                    {isActive && <ChevronRight className="ml-auto w-4 h-4" />}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarContent>
-
-      {/* ONDERKANT: USER & LOGOUT */}
-      <SidebarFooter className="p-4 border-t border-slate-50">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-            <UserButton />
-            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-              <SignOutButton>
-                <button className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">
-                  Uitloggen
-                </button>
-              </SignOutButton>
+    <header className="sticky top-0 w-full bg-white border-b border-slate-100 z-[120]">
+      <div className="w-full px-6 lg:px-10">
+        <div className="flex justify-between items-center h-16">
+          {/* LOGO */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="bg-[#4FC3F7] text-white w-9 h-9 flex items-center justify-center rounded-xl shadow-sm">
+              <PawPrint fill="currentColor" size={20} />
             </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+            <span className="font-heading italic font-extrabold text-[#1A1A2E] tracking-tighter text-lg uppercase">
+              PetCheck<span className="text-[#4FC3F7]">.ai</span>
+            </span>
+          </Link>
 
-      {/* DE RAIL: De inklap-knop voor desktop */}
-      <SidebarRail />
-    </Sidebar>
+          {/* DESKTOP NAV */}
+          <div className="hidden md:flex items-center gap-8">
+            <nav className="flex items-center gap-8">
+              <a
+                href="#features"
+                className="text-slate-500 font-bold hover:text-[#4FC3F7] transition-colors text-xs uppercase tracking-widest">
+                Mogelijkheden
+              </a>
+              <a
+                href="#pricing"
+                className="text-slate-500 font-bold hover:text-[#4FC3F7] transition-colors text-xs uppercase tracking-widest">
+                Prijzen
+              </a>
+              <a
+                href="#faq"
+                className="text-slate-500 font-bold hover:text-[#4FC3F7] transition-colors text-xs uppercase tracking-widest">
+                FAQ
+              </a>
+            </nav>
+            <Show when="signed-out">
+              <div className="flex items-center gap-3">
+                <SignInButton mode="modal">
+                  <button className="font-bold text-slate-700 text-xs uppercase tracking-widest">
+                    Inloggen
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button className="bg-[#1A1A2E] text-white px-6 h-10 rounded-xl font-bold text-xs uppercase tracking-widest">
+                    Start nu
+                  </Button>
+                </SignUpButton>
+              </div>
+            </Show>
+            <Show when="signed-in">
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard">
+                  <Button className="bg-[#1A1A2E] text-white px-6 h-10 rounded-xl font-bold text-xs uppercase tracking-widest">
+                    Dashboard
+                  </Button>
+                </Link>
+                <UserButton />
+              </div>
+            </Show>
+          </div>
+
+          {/* MOBIEL MENU TRIGGER */}
+          <div className="md:hidden flex items-center gap-3">
+            <Show when="signed-in">
+              <UserButton
+                appearance={{ elements: { userButtonAvatarBox: "w-8 h-8" } }}
+              />
+            </Show>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-0 h-auto w-auto bg-transparent">
+                  <Menu
+                    size={28}
+                    strokeWidth={2.5}
+                    className="text-[#1A1A2E]"
+                  />
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent
+                side="right"
+                className="w-64 !bg-white p-0 border-l border-slate-100 shadow-xl flex flex-col fixed top-16 h-[calc(100vh-64px)] z-[110]">
+                <SheetTitle className="sr-only">Navigatiemenu</SheetTitle>
+
+                <div className="p-8 flex flex-col gap-6 flex-1 text-right items-end pt-12">
+                  {/* DE LINKS NAAR JE BESTAANDE SECTIES */}
+                  <a
+                    href="#features"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1A1A2E] hover:text-[#4FC3F7] transition-colors py-2">
+                    Mogelijkheden
+                  </a>
+                  <a
+                    href="#pricing"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1A1A2E] hover:text-[#4FC3F7] transition-colors py-2">
+                    Prijzen
+                  </a>
+                  <a
+                    href="#faq"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1A1A2E] hover:text-[#4FC3F7] transition-colors py-2">
+                    FAQ
+                  </a>
+
+                  <div className="mt-auto pb-10 w-full flex flex-col gap-6 items-end">
+                    <Show when="signed-out">
+                      <SignInButton mode="modal">
+                        <button className="text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-[#1A1A2E]">
+                          Inloggen
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal">
+                        <Button className="w-full h-12 bg-[#4FC3F7] text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg">
+                          Start nu Gratis
+                        </Button>
+                      </SignUpButton>
+                    </Show>
+
+                    <Show when="signed-in">
+                      <Link href="/dashboard" className="w-full">
+                        <Button className="w-full h-12 bg-[#4FC3F7] text-white rounded-xl font-bold uppercase text-xs tracking-widest">
+                          Naar Dashboard
+                        </Button>
+                      </Link>
+                    </Show>
+
+                    {/* HET DIKKE ZWARTE KRUISJE RECHTSONDER */}
+                    <div className="pt-4">
+                      <SheetTrigger asChild>
+                        <button className="text-black transition-transform active:scale-90 outline-none">
+                          <X size={32} strokeWidth={3} />
+                        </button>
+                      </SheetTrigger>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }
