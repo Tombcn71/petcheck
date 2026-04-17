@@ -1,10 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google"; // Vervang Geist door Jakarta
 import "./globals.css";
-import Navbar from "@/components/Navbar"; // Importeer je nieuwe component
+import Navbar from "@/components/Navbar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// 1. Laad Plus Jakarta Sans voor de serieuze 'PetCheck' vibe
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"], // Genoeg variatie voor dikke koppen
+});
+
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -33,9 +40,12 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="nl">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Navbar />
-          {children}
+          /* 2. Voeg de nieuwe font-variable toe en zet font-jakarta als standaard */
+          className={`${jakarta.variable} ${geistMono.variable} font-jakarta antialiased`}>
+          <TooltipProvider delayDuration={0}>
+            <Navbar />
+            {children}
+          </TooltipProvider>
         </body>
       </html>
     </ClerkProvider>
