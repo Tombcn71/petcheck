@@ -91,16 +91,14 @@ export default function Home() {
           Next-Gen Veterinary AI
         </Badge>
 
-        <h1
-          className="text-4xl md:text-7xl font-black uppercase tracking-tighter leading-[0.95] mb-8"
-          style={{ fontFamily: "'Syne', sans-serif" }}>
-          Zorg voor je hond, <br />
-          <span className="text-[#4FC3F7] ">simpel gemaakt.</span>
+        <h1 className="text-4xl md:text-7xl font-black uppercase  mb-8">
+          AI Gezondheidsscan, <br />
+          <span className="text-[#4FC3F7] ">voor jouw hond.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          De meest geavanceerde AI-tool voor hondenbezitters in Nederland.
-          Analyseer symptomen en welzijn direct vanaf een foto.
+          Geavanceerde symptoom-analyse en automatische dossieropbouw. Slimme
+          ondersteuning voor elke hondenbezitter, 24/7 beschikbaar.{" "}
         </p>
 
         <div className="flex justify-center items-center gap-4">

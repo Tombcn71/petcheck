@@ -159,7 +159,7 @@ export default function CheckPage() {
           <h1
             className="text-4xl font-black  uppercase tracking-tighter mt-4"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            Honden<span className="text-[#4FC3F7]">Check</span>
+            Honden<span className="text-[#4FC3F7]">Scan</span>
           </h1>
           <p className="text-slate-500 text-lg">
             AI-gestuurde analyse voor je hond.

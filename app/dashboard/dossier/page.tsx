@@ -110,7 +110,7 @@ export default function Geschiedenis() {
           <h1
             className="text-4xl md:text-6xl font-black  uppercase text-[#1A1A2E] leading-none tracking-tighter"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            Scan <span className="text-[#4FC3F7]">Geschiedenis</span>
+            Scan <span className="text-[#4FC3F7]">Dossier</span>
           </h1>
         </header>
 

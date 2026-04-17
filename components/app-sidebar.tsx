@@ -24,8 +24,8 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Nieuwe Check", url: "/dashboard/check", icon: PlusCircle },
-  { title: "Geschiedenis", url: "/dashboard/geschiedenis", icon: History },
+  { title: "Nieuwe Scan", url: "/dashboard/scan", icon: PlusCircle },
+  { title: "Dossier", url: "/dashboard/dossier", icon: History },
   { title: "Profiel", url: "/dashboard/profiel", icon: User },
   { title: "Instellingen", url: "/dashboard/settings", icon: Settings },
 ];
@@ -38,16 +38,7 @@ export function AppSidebar() {
     <Sidebar
       collapsible="icon"
       className="border-r border-slate-100 bg-white relative">
-      <SidebarHeader className="h-20 flex flex-row items-center px-6 border-b border-slate-50 bg-white">
-        <div className="flex items-center gap-3">
-          <div className="bg-[#4FC3F7] p-2 rounded-xl text-white shadow-sm">
-            <PawPrint size={20} fill="currentColor" />
-          </div>
-          <span className="font-heading italic font-extrabold text-[#1A1A2E] tracking-tighter text-xl uppercase">
-            PETCHECK
-          </span>
-        </div>
-      </SidebarHeader>
+      <SidebarHeader className="h-20 flex flex-row items-center px-6 border-b border-slate-50 bg-white"></SidebarHeader>
 
       <SidebarContent className="p-4 bg-white relative flex flex-col h-full">
         <SidebarMenu className="gap-2 flex-1">
