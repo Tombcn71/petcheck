@@ -93,7 +93,7 @@ export default function Home() {
 
         <h1 className="text-4xl md:text-7xl font-black uppercase  mb-8">
           AI Gezondheidsscan, <br />
-          <span className="text-[#4FC3F7] ">voor jouw hond.</span>
+          <span className="text-[#4FC3F7] ">voor jouw doggy.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">

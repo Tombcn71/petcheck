@@ -27,7 +27,7 @@ export default function Dashboard() {
 
           {/* CTA Link */}
           <Link
-            href="/dashboard/check"
+            href="/dashboard/scan"
             className="bg-[#1A1A2E] hover:opacity-90 text-white px-10 py-6 rounded-2xl font-bold text-lg transition-all flex items-center gap-4 w-fit shadow-xl active:scale-95">
             Start Scan
             <ArrowRight size={22} />

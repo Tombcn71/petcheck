@@ -28,7 +28,7 @@ export default function Navbar() {
               <PawPrint fill="currentColor" size={20} />
             </div>
             <span className="font-heading  font-extrabold text-[#1A1A2E] tracking-tighter text-lg uppercase">
-              PetCheck<span className="text-[#4FC3F7]">.ai</span>
+              Doggy<span className="text-[#4FC3F7]">scan.nl</span>
             </span>
           </Link>
 
