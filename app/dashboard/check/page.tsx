@@ -1,6 +1,15 @@
 "use client";
 import { useState, useRef } from "react";
 import Link from "next/link";
+// Shadcn UI Imports
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface Result {
   summary?: string;
@@ -10,111 +19,102 @@ interface Result {
   error?: string;
 }
 
-interface Tool {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  color: string;
-  bg: string;
-}
-
-const tools: Tool[] = [
+const tools = [
   {
     id: "eyes",
     icon: "👁️",
     title: "Oog Check",
     description: "Check op irritatie of roodheid",
-    color: "#0288D1",
     bg: "#E6F1FB",
+    color: "#0288D1",
   },
   {
     id: "poop",
     icon: "💩",
     title: "Ontlasting Analyse",
     description: "Detecteer afwijkingen in kleur",
-    color: "#5D4037",
     bg: "#F1EFE8",
+    color: "#5D4037",
   },
   {
     id: "dental",
     icon: "🦷",
     title: "Gebit & Tandvlees",
     description: "Monitor tandsteen en tandvlees",
-    color: "#388E3C",
     bg: "#EAF3DE",
+    color: "#388E3C",
   },
   {
     id: "skin",
     icon: "🐾",
     title: "Huid & Vacht",
     description: "Check op plekjes of irritatie",
-    color: "#E65100",
     bg: "#FAEEDA",
+    color: "#E65100",
   },
   {
     id: "bcs",
     icon: "⚖️",
     title: "Gewichts-check",
     description: "Beoordeel de BCS score",
-    color: "#2E7D32",
     bg: "#F1F8E9",
+    color: "#2E7D32",
   },
   {
     id: "pain",
     icon: "🐕",
     title: "Comfort Monitor",
     description: "AI-analyse van ongemak",
-    color: "#D81B60",
     bg: "#FCE4EC",
+    color: "#D81B60",
   },
   {
     id: "coat",
     icon: "✨",
     title: "Vachtkwaliteit",
     description: "Beoordeel glans en conditie",
-    color: "#FF8F00",
     bg: "#FFF8E1",
+    color: "#FF8F00",
   },
   {
     id: "nose",
     icon: "🐶",
     title: "Neus Analyse",
     description: "Check op droogheid of korstjes",
-    color: "#455A64",
     bg: "#ECEFF1",
+    color: "#455A64",
   },
   {
     id: "ticks",
     icon: "🕷️",
     title: "Teken Spotter",
     description: "Identificeer teken en risico's",
-    color: "#6A1B9A",
     bg: "#EEEDFE",
+    color: "#6A1B9A",
   },
   {
     id: "fleas",
     icon: "🦟",
     title: "Parasieten Check",
     description: "Spoor vlooien of mijten op",
-    color: "#AD1457",
     bg: "#FBEAF0",
+    color: "#AD1457",
   },
   {
     id: "mange",
     icon: "🔬",
     title: "Huidinfecties",
     description: "Check op hotspots of schimmel",
-    color: "#C62828",
     bg: "#FCEBEB",
+    color: "#C62828",
   },
   {
     id: "ears",
     icon: "👂",
     title: "Oor Check",
     description: "Detecteer roodheid of mijt",
-    color: "#00695C",
     bg: "#E1F5EE",
+    color: "#00695C",
   },
 ];
 
@@ -153,160 +153,119 @@ export default function CheckPage() {
   }
 
   return (
-    <div
-      style={{
-        background: "#F7F7FA",
-        minHeight: "100vh",
-        color: "#1A1A2E",
-        fontFamily: "'DM Sans', sans-serif",
-      }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
-        .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-        .card { background: #FFFFFF; border-radius: 24px; border: 1px solid #E8E8F0; padding: 24px; display: flex; flex-direction: column; transition: all 0.2s; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
-        .tool-head { display: flex; gap: 16px; margin-bottom: 20px; }
-        .tool-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .tool-info h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 4px; }
-        .tool-info p { font-size: 13px; color: #8888AA; line-height: 1.4; }
-        .preview { width: 100%; aspect-ratio: 16/10; background: #F3F3FA; border-radius: 16px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #E8E8F0; position: relative; }
-        .preview img { width: 100%; height: 100%; object-fit: cover; }
-        .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px; }
-        .result-box { margin-top: 16px; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; border: 1px solid; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .ai-details { margin-top: 12px; font-size: 13px; color: #4A4A68; line-height: 1.5; padding: 0 4px; }
-        .ai-advice { margin-top: 10px; padding: 12px; background: #F9FAFB; border-radius: 10px; border: 1px solid #E8E8F0; font-size: 12px; color: #1A1A2E; border-left: 4px solid #1A1A2E; }
-        .loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: 700; color: #1A1A2E; }
-        .disclaimer { margin-top: 40px; text-align: center; font-size: 12px; color: #AAAAAA; max-width: 800px; margin-inline: auto; line-height: 1.6; }
-      `}</style>
-
-      <main className="container ml-16 lg:ml-2">
-        <header style={{ marginBottom: "40px", marginLeft: "60px" }}>
+    <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12">
+      <main className="max-w-7xl mx-auto">
+        <header className="mb-10">
           <Link
             href="/dashboard"
-            style={{
-              color: "#6B6B8A",
-              textDecoration: "none",
-              fontSize: "14px",
-              display: "block",
-              marginBottom: "10px",
-            }}>
+            className="text-slate-400 hover:text-slate-600 text-sm font-bold uppercase tracking-widest transition-colors">
             ← Dashboard
           </Link>
           <h1
-            style={{
-              fontFamily: "'Syne', sans-serif",
-              fontSize: "36px",
-              marginBottom: "8px",
-            }}>
-            Gezondheidscheck
+            className="text-4xl font-black italic uppercase tracking-tighter mt-4"
+            style={{ fontFamily: "'Syne', sans-serif" }}>
+            Honden<span className="text-[#4FC3F7]">Check</span>
           </h1>
-          <p style={{ color: "#6B6B8A", fontSize: "18px" }}>
+          <p className="text-slate-500 text-lg">
             AI-gestuurde analyse voor je hond.
           </p>
         </header>
 
-        <div className="grid ml-6 lg:ml-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {tools.map((tool) => {
             const res = results[tool.id];
             const isLoading = loading[tool.id];
             const preview = previews[tool.id];
 
             return (
-              <div className="card" key={tool.id}>
-                <div className="tool-head">
-                  <div className="tool-icon" style={{ background: tool.bg }}>
+              <Card
+                key={tool.id}
+                className="border-none shadow-sm ring-1 ring-slate-200 overflow-hidden hover:shadow-md transition-all">
+                <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner"
+                    style={{ background: tool.bg }}>
                     {tool.icon}
                   </div>
-                  <div className="tool-info">
-                    <h3>{tool.title}</h3>
-                    <p>{tool.description}</p>
+                  <div>
+                    <CardTitle className="text-lg font-bold tracking-tight">
+                      {tool.title}
+                    </CardTitle>
+                    <CardDescription className="text-xs leading-tight">
+                      {tool.description}
+                    </CardDescription>
                   </div>
-                </div>
+                </CardHeader>
 
-                <div className="preview">
-                  {preview && <img src={preview} alt="Preview" />}
-                  {!preview && !isLoading && (
-                    <div
-                      style={{
-                        color: "#AAAACC",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}>
-                      📸 Upload foto
-                    </div>
-                  )}
-                  {isLoading && (
-                    <div className="loader-overlay">Scannen...</div>
-                  )}
-                </div>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  ref={(el) => {
-                    fileRefs.current[tool.id] = el;
-                  }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) analyze(tool.id, file);
-                  }}
-                />
-
-                <button
-                  className="action-btn"
-                  style={{ background: tool.bg, color: tool.color }}
-                  onClick={() => fileRefs.current[tool.id]?.click()}
-                  disabled={isLoading}>
-                  {isLoading
-                    ? "Bezig..."
-                    : preview
-                      ? "Nieuwe Foto"
-                      : "Start Analyse"}
-                </button>
-
-                {res && !isLoading && !res.error && (
-                  <div className="results-container">
-                    <div
-                      className="result-box"
-                      style={{
-                        background: res.isOk ? "#EAF3DE" : "#FCEBEB",
-                        borderColor: res.isOk ? "#C0DD97" : "#F7C1C1",
-                        color: res.isOk ? "#2E7D32" : "#C62828",
-                      }}>
-                      {res.summary}
-                    </div>
-
-                    <div className="ai-details">
-                      <strong>Inzicht:</strong> {res.details}
-                    </div>
-
-                    {res.advice && (
-                      <div className="ai-advice">
-                        <strong>AI Advies:</strong> {res.advice}
+                <CardContent className="space-y-4">
+                  <div className="relative aspect-[16/10] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center group">
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-slate-300 text-center font-bold text-[10px] uppercase tracking-widest">
+                        📸 Upload foto
+                      </div>
+                    )}
+                    {isLoading && (
+                      <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-[#1A1A2E] border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-[10px] font-black mt-2 uppercase">
+                          Scannen...
+                        </span>
                       </div>
                     )}
                   </div>
-                )}
 
-                {res?.error && (
-                  <div
-                    className="result-box"
-                    style={{
-                      background: "#FCEBEB",
-                      color: "#C62828",
-                      borderColor: "#F7C1C1",
-                    }}>
-                    {res.error}
-                  </div>
-                )}
-              </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={(el) => {
+                      fileRefs.current[tool.id] = el;
+                    }}
+                    onChange={(e) =>
+                      e.target.files?.[0] && analyze(tool.id, e.target.files[0])
+                    }
+                  />
+
+                  <Button
+                    className="w-full h-11 rounded-xl font-bold uppercase text-[11px] tracking-widest transition-all active:scale-95"
+                    style={{ background: tool.bg, color: tool.color }}
+                    onClick={() => fileRefs.current[tool.id]?.click()}
+                    disabled={isLoading}>
+                    {isLoading
+                      ? "Bezig..."
+                      : preview
+                        ? "Nieuwe Foto"
+                        : "Start Analyse"}
+                  </Button>
+
+                  {res && !isLoading && !res.error && (
+                    <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div
+                        className={`p-3 rounded-xl border text-center text-xs font-black uppercase tracking-widest ${res.isOk ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"}`}>
+                        {res.summary}
+                      </div>
+                      <div className="mt-3 text-[13px] text-slate-600 leading-relaxed italic">
+                        <strong>Inzicht:</strong> {res.details}
+                      </div>
+                      {res.advice && (
+                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border-l-4 border-[#1A1A2E] text-[12px] text-slate-800">
+                          {res.advice}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             );
           })}
         </div>
-
-        <p className="disclaimer">
+        <p className="mt-12 text-center text-[10px] text-slate-400 uppercase tracking-[0.2em] max-w-2xl mx-auto">
           Let op: Deze check is een AI-ondersteuning en vervangt geen
           professioneel dierenartsadvies.
         </p>

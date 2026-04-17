@@ -7,17 +7,24 @@ import {
   User,
   Settings,
   LogOut,
-  X,
   Menu,
   PlusCircle,
+  PawPrint,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton, SignOutButton } from "@clerk/nextjs"; // Importeer Clerk componenten
+import { UserButton, SignOutButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function Sidebar() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNavOpen, setIsNavOpen] = useState(false);
   const pathname = usePathname();
 
   const sidebarItems = [
@@ -34,152 +41,125 @@ export default function Sidebar() {
     { name: "Contact", href: "/contact" },
   ];
 
-  return (
-    <>
-      <style>{`
-        .logo-font { font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: -1.5px; }
-        .nav-text { font-family: 'DM Sans', sans-serif; }
-      `}</style>
-
-      {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 px-6 flex items-center justify-between z-[200]">
-        <Link
-          href="/"
-          className="logo-font text-[#1A1A2E] text-xl flex items-center gap-2">
-          <span className="text-[#4FC3F7]">🐾</span> PETCHECK
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-8 text-[13px] font-bold text-[#6B6B8A] uppercase tracking-widest">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="hover:text-[#4FC3F7] transition-colors">
-              {link.name}
-            </Link>
-          ))}
-
-          {/* GEFIXTE AVATAR: Hier wordt de Google avatar nu gefetched */}
-          <div className="ml-4 flex items-center">
-            <UserButton />
-          </div>
-        </div>
-
-        <button
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          className="lg:hidden p-2 text-[#1A1A2E]">
-          {isNavOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-
-        {isNavOpen && (
-          <div className="absolute top-16 left-0 right-0 bg-white border-b border-slate-100 p-6 flex flex-col gap-4 lg:hidden shadow-xl animate-in slide-in-from-top duration-300">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsNavOpen(false)}
-                className="text-sm font-bold text-[#1A1A2E] uppercase tracking-wider">
-                {link.name}
-              </Link>
-            ))}
-          </div>
-        )}
-      </nav>
-
-      {/* MOBILE RAIL */}
-      <div className="lg:hidden fixed left-0 top-16 bottom-0 w-16 bg-white border-r border-slate-100 z-[100] flex flex-col items-center py-8">
-        <div className="flex flex-col gap-10">
+  const NavContent = () => (
+    <div className="flex flex-col h-full py-4">
+      <div className="px-4 py-2">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 opacity-70">
+          Dashboard Menu
+        </p>
+        <nav className="space-y-1">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsSidebarOpen(true)}
-                className="relative flex items-center justify-center group">
-                <item.icon
-                  size={22}
-                  strokeWidth={isActive ? 2.5 : 1.5}
-                  className={`transition-all duration-300 ${
+              <Link key={item.name} href={item.href}>
+                <Button
+                  variant={isActive ? "secondary" : "ghost"}
+                  className={`w-full justify-start gap-4 h-12 rounded-xl font-bold transition-all ${
                     isActive
-                      ? "text-[#4FC3F7] drop-shadow-[0_0_8px_rgba(79,195,247,0.5)]"
-                      : "text-slate-400 group-hover:text-[#1A1A2E]"
-                  }`}
-                />
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Avatar ook in de mobiele rail onderaan */}
-        <div className="mt-auto mb-6">
-          <UserButton />
-        </div>
-
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="mb-4 p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-[#4FC3F7] transition-all">
-          <Menu size={20} />
-        </button>
-      </div>
-
-      {/* OVERLAY */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-[#1A1A2E]/40 backdrop-blur-sm z-[140] lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* FULL SIDEBAR */}
-      <aside
-        className={`fixed left-0 bottom-0 bg-white z-[150] flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] lg:top-16 lg:w-72 lg:translate-x-0 lg:border-r lg:border-slate-100 ${
-          isSidebarOpen
-            ? "translate-x-0 w-80 top-0 shadow-2xl"
-            : "-translate-x-full lg:translate-x-0"
-        }`}>
-        <div className="lg:hidden h-20 flex items-center justify-between px-8">
-          <div className="logo-font text-[#1A1A2E] text-2xl">
-            <span className="text-[#4FC3F7]">🐾</span> PETCHECK
-          </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="p-2 text-slate-400">
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-1">
-          <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 opacity-50">
-            Dashboard Menu
-          </p>
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all font-bold text-[15px] nav-text ${
-                  isActive
-                    ? "bg-[#E6F1FB] text-[#0288D1]"
-                    : "text-[#6B6B8A] hover:bg-slate-50"
-                }`}>
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-                {item.name}
+                      ? "bg-[#E6F1FB] text-[#0288D1] hover:bg-[#E6F1FB]"
+                      : "text-[#6B6B8A] hover:bg-slate-50"
+                  }`}>
+                  <item.icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                  {item.name}
+                </Button>
               </Link>
             );
           })}
         </nav>
+      </div>
 
-        <div className="p-8 border-t border-slate-50">
-          <SignOutButton>
-            <button className="flex items-center gap-3 text-[#6B6B8A] hover:text-red-500 font-bold text-xs uppercase tracking-widest transition-colors nav-text w-full">
-              <LogOut size={18} /> Uitloggen
-            </button>
-          </SignOutButton>
+      <div className="mt-auto px-4 pb-4">
+        <Separator className="mb-6 opacity-50" />
+        <SignOutButton>
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-[#6B6B8A] hover:text-red-500 font-bold text-xs uppercase tracking-widest px-4">
+            <LogOut size={18} /> Uitloggen
+          </Button>
+        </SignOutButton>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* NAVBAR */}
+      <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 flex items-center justify-between z-[50]">
+        <Link
+          href="/"
+          className="font-black text-[#1A1A2E] text-xl flex items-center gap-2 tracking-tighter italic"
+          style={{ fontFamily: "'Syne', sans-serif" }}>
+          <span className="text-[#4FC3F7] not-italic">
+            <PawPrint fill="currentColor" size={24} />
+          </span>{" "}
+          PETCHECK
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-8">
+          <div className="flex gap-8 text-[11px] font-black text-[#6B6B8A] uppercase tracking-widest">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="hover:text-[#4FC3F7] transition-colors">
+                {link.name}
+              </Link>
+            ))}
+          </div>
+          <Separator orientation="vertical" className="h-6 mx-2" />
+          <UserButton />
         </div>
+
+        {/* Mobile Menu Trigger */}
+        <div className="lg:hidden flex items-center gap-4">
+          <UserButton />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-[#1A1A2E]">
+                <Menu size={24} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-0 border-r-none">
+              <SheetHeader className="p-6 border-b border-slate-50 text-left">
+                <SheetTitle
+                  className="font-black italic text-xl tracking-tighter"
+                  style={{ fontFamily: "'Syne', sans-serif" }}>
+                  <span className="text-[#4FC3F7] not-italic inline-block mr-2">
+                    🐾
+                  </span>{" "}
+                  PETCHECK
+                </SheetTitle>
+              </SheetHeader>
+              <NavContent />
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
+
+      {/* DESKTOP SIDEBAR (Static) */}
+      <aside className="fixed left-0 top-16 bottom-0 w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col z-[40]">
+        <NavContent />
       </aside>
+
+      {/* MOBILE RAIL (Onderaan of zijkant optioneel) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-100 z-[50] flex items-center justify-around px-4">
+        {sidebarItems.slice(0, 4).map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link key={item.name} href={item.href} className="p-2 relative">
+              <item.icon
+                size={22}
+                className={isActive ? "text-[#4FC3F7]" : "text-slate-400"}
+                strokeWidth={isActive ? 2.5 : 1.5}
+              />
+              {isActive && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#4FC3F7] rounded-full" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
     </>
   );
 }
