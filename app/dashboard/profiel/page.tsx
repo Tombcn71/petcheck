@@ -1,136 +1,294 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect, useRef } from "react";
+import { useUser } from "@clerk/nextjs";
+import { Save, ArrowLeft, Camera, Loader2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-export default function DogProfile() {
+export default function ProfielPage() {
+  const { user } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [dogData, setDogData] = useState({
     name: "",
     breed: "",
     age: "",
+    size: "",
     weight: "",
-    gender: "reutje",
-    sterilized: "nee",
+    gender: "",
+    sterilized: "",
+    image_url: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Hier komt straks de koppeling met je database (Supabase/Convex)
-    console.log("Data opgeslagen:", dogData);
-    alert("Profiel bijgewerkt!");
+  useEffect(() => {
+    const fetchDogData = async () => {
+      try {
+        const res = await fetch("/api/dogs");
+        if (!res.ok) throw new Error("Kon data niet ophalen");
+        const data = await res.json();
+        if (data) {
+          setDogData({
+            name: data.name || "",
+            breed: data.breed || "",
+            age: data.age || "",
+            size: data.size || "",
+            weight: data.weight || "",
+            gender: data.gender || "",
+            sterilized: data.sterilized || "",
+            image_url: data.image_url || "",
+          });
+        }
+      } catch (error) {
+        console.error("Fout bij ophalen:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDogData();
+  }, []);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Image = reader.result as string;
+      try {
+        const res = await fetch("/api/dogs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...dogData, image: base64Image }),
+        });
+        if (res.ok) {
+          const result = await res.json();
+          setDogData((prev) => ({ ...prev, image_url: result.url }));
+        }
+      } catch (error) {
+        alert("Uploaden mislukt");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/dogs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...dogData, image: null }),
+      });
+      if (res.ok) alert("Profiel succesvol bijgewerkt!");
+    } catch (error) {
+      alert("Er ging iets mis.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="p-12 font-black uppercase text-slate-300">Laden...</div>
+    );
+
   return (
-    <div className="profile-container">
-      <style>{`
-        .profile-container { max-width: 600px; margin: 40px auto; padding: 0 20px; }
-        .back-link { color: #6B6B8A; text-decoration: none; font-size: 14px; display: block; margin-bottom: 20px; }
-        h1 { font-family: 'Syne', sans-serif; font-size: 28px; margin-bottom: 8px; }
-        p { color: #6B6B8A; margin-bottom: 30px; }
-        
-        form { display: flex; flex-direction: column; gap: 20px; background: #F9FAFB; padding: 30px; border-radius: 24px; border: 1px solid #F3F4F6; }
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-size: 14px; font-weight: 600; color: #1A1A2E; }
-        input, select { 
-          padding: 12px; border-radius: 10px; border: 1px solid #E5E7EB; 
-          font-family: inherit; font-size: 16px; outline: none; transition: border-color 0.2s;
-        }
-        input:focus { border-color: #4FC3F7; }
-        
-        .btn-save { 
-          background: #1A1A2E; color: white; padding: 16px; border-radius: 12px; 
-          font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: 10px;
-        }
-        .btn-save:hover { opacity: 0.9; }
-      `}</style>
-
-      <Link href="/dashboard" className="back-link">
-        ← Terug naar Dashboard
-      </Link>
-
-      <h1>Hondenprofiel 🐾</h1>
-      <p>Vul de gegevens van je hond in voor nauwkeurigere diagnoses.</p>
-
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label>Naam van je hond</label>
-          <input
-            type="text"
-            placeholder="Bijv. Buddy"
-            value={dogData.name}
-            onChange={(e) => setDogData({ ...dogData, name: e.target.value })}
-            required
+    <div className="min-h-screen bg-white font-sans text-[#1A1A2E] p-6 md:p-12">
+      <div className="w-full max-w-xl text-left ml-0">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8 group">
+          <ArrowLeft
+            size={14}
+            className="group-hover:-translate-x-1 transition-transform"
           />
-        </div>
+          Terug naar Dashboard
+        </Link>
 
-        <div className="input-group">
-          <label>Ras</label>
-          <input
-            type="text"
-            placeholder="Bijv. Golden Retriever"
-            value={dogData.breed}
-            onChange={(e) => setDogData({ ...dogData, breed: e.target.value })}
-            required
-          />
-        </div>
+        <header className="mb-10">
+          <h1 className="text-3xl font-black text-[#1A1A2E] uppercase tracking-tight italic">
+            Profiel <span className="text-[#4FC3F7] not-italic px-2">/</span>{" "}
+            {dogData.name || "Hond"}
+          </h1>
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+            Account: {user?.primaryEmailAddress?.emailAddress}
+          </p>
+        </header>
 
-        <div
-          className="input-group"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "15px",
-          }}>
-          <div>
-            <label>Leeftijd (jaar)</label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* FOTO */}
+          <div className="flex flex-col gap-4">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[#4FC3F7]">
+              Hondenfoto
+            </label>
+            <div
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              className="relative h-32 w-32 rounded-3xl overflow-hidden border-4 border-slate-100 shadow-sm cursor-pointer group bg-slate-50">
+              {dogData.image_url ? (
+                <img
+                  src={dogData.image_url}
+                  className="w-full h-full object-cover"
+                  alt="Hond"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl">
+                  🐶
+                </div>
+              )}
+              <div
+                className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${isUploading ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                {isUploading ? (
+                  <Loader2 className="text-white animate-spin" />
+                ) : (
+                  <Camera className="text-white" />
+                )}
+              </div>
+            </div>
             <input
-              type="number"
-              placeholder="0"
-              value={dogData.age}
-              onChange={(e) => setDogData({ ...dogData, age: e.target.value })}
-              required
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageUpload}
             />
           </div>
-          <div>
-            <label>Gewicht (kg)</label>
-            <input
-              type="number"
-              placeholder="0"
-              value={dogData.weight}
-              onChange={(e) =>
-                setDogData({ ...dogData, weight: e.target.value })
-              }
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* NAAM */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Naam
+              </label>
+              <input
+                type="text"
+                value={dogData.name}
+                onChange={(e) =>
+                  setDogData({ ...dogData, name: e.target.value })
+                }
+                className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-[#4FC3F7]"
+                required
+              />
+            </div>
+
+            {/* RAS */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Ras
+              </label>
+              <input
+                type="text"
+                value={dogData.breed}
+                onChange={(e) =>
+                  setDogData({ ...dogData, breed: e.target.value })
+                }
+                className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-[#4FC3F7]"
+              />
+            </div>
+
+            {/* LEEFTIJD */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Leeftijd
+              </label>
+              <input
+                type="number"
+                value={dogData.age}
+                onChange={(e) =>
+                  setDogData({ ...dogData, age: e.target.value })
+                }
+                className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-[#4FC3F7]"
+              />
+            </div>
+
+            {/* GEWICHT */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Gewicht (kg)
+              </label>
+              <input
+                type="number"
+                value={dogData.weight}
+                onChange={(e) =>
+                  setDogData({ ...dogData, weight: e.target.value })
+                }
+                className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-[#4FC3F7]"
+              />
+            </div>
+
+            {/* GROOTTE SELECTIE */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Formaat
+              </label>
+              <select
+                value={dogData.size}
+                onChange={(e) =>
+                  setDogData({ ...dogData, size: e.target.value })
+                }
+                className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none appearance-none">
+                <option value="klein">Klein</option>
+                <option value="middel">Middel</option>
+                <option value="groot">Groot</option>
+              </select>
+            </div>
+
+            {/* GESLACHT */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Geslacht
+              </label>
+              <div className="flex gap-2">
+                {["Reu", "Teef"].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setDogData({ ...dogData, gender: g })}
+                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${dogData.gender === g ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]" : "border-slate-100 text-slate-400"}`}>
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* STERILISATIE */}
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Gecastreerd / Gesteriliseerd
+              </label>
+              <div className="flex gap-2">
+                {["Ja", "Nee"].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setDogData({ ...dogData, sterilized: s })}
+                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${dogData.sterilized === s ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]" : "border-slate-100 text-slate-400"}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="input-group">
-          <label>Geslacht</label>
-          <select
-            value={dogData.gender}
-            onChange={(e) =>
-              setDogData({ ...dogData, gender: e.target.value })
-            }>
-            <option value="reutje">Reutje</option>
-            <option value="teefje">Teefje</option>
-          </select>
-        </div>
-
-        <div className="input-group">
-          <label>Gecastreerd / Gesteriliseerd?</label>
-          <select
-            value={dogData.sterilized}
-            onChange={(e) =>
-              setDogData({ ...dogData, sterilized: e.target.value })
-            }>
-            <option value="nee">Nee</option>
-            <option value="ja">Ja</option>
-          </select>
-        </div>
-
-        <button type="submit" className="btn-save">
-          Profiel Opslaan
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={isSaving || isUploading}
+            className="w-full py-5 bg-[#1A1A2E] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#4FC3F7] transition-all shadow-lg flex items-center justify-center gap-2">
+            {isSaving ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Save size={16} />
+            )}
+            {isSaving ? "Opslaan..." : "Profiel Opslaan"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

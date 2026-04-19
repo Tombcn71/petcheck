@@ -54,17 +54,20 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {/* AUTH SECTIE */}
             <Show when="signed-out">
-              <div className="hidden md:flex items-center gap-4">
-                <SignInButton mode="modal">
-                  <button className="font-bold text-slate-700 text-xs uppercase tracking-widest">
-                    Inloggen
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <Button className="bg-[#1A1A2E] text-white px-6 h-10 rounded-xl font-bold uppercase text-[10px] tracking-widest">
-                    Start nu
+              <div className="hidden md:flex items-center gap-6">
+                {/* Link naar je eigen inlogpagina */}
+                <Link
+                  href="/signin?redirect_url=/dashboard"
+                  className="font-bold text-slate-700 text-xs uppercase tracking-widest hover:text-[#4FC3F7] transition-colors">
+                  Inloggen
+                </Link>
+
+                {/* Link naar je eigen registratiepagina met de juiste CTA */}
+                <Link href="/signup?redirect_url=/onboarding">
+                  <Button className="bg-[#1A1A2E] hover:bg-[#4FC3F7] text-white px-6 h-11 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-md active:scale-95">
+                    Start gratis week
                   </Button>
-                </SignUpButton>
+                </Link>
               </div>
             </Show>
 

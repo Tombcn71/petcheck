@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google"; // Vervang Gei
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { nlNL } from "@clerk/localizations"; // Importeer Nederlands
 
 // 1. Laad Plus Jakarta Sans voor de serieuze 'PetCheck' vibe
 const jakarta = Plus_Jakarta_Sans({
@@ -37,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={nlNL}>
       <html lang="nl">
         <body
           /* 2. Voeg de nieuwe font-variable toe en zet font-jakarta als standaard */

@@ -12,28 +12,30 @@ export default function Pricing() {
   return (
     <section className="w-full bg-[#F8FAFC] py-20 font-sans">
       <div className="max-w-6xl mx-auto px-4">
-        <header className="text-center mb-16">
+        {/* RUSTIGE HEADER */}
+        <header className="text-center mb-16 max-w-2xl mx-auto">
           <h2
             className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-4 text-[#1A1A2E]"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            Kies voor <span className="text-[#4FC3F7]">Zekerheid</span>
+            Start je <span className="text-[#4FC3F7]">gratis week</span>
           </h2>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
-            Start je gratis week en ontdek de kracht van AI.
+          <p className="text-slate-500 font-medium text-lg leading-relaxed">
+            Ontdek wat AI voor de gezondheid van je hond kan betekenen.
+            <span className="block text-emerald-600 font-bold text-sm mt-2 uppercase tracking-widest">
+              Geen betaalgegevens nodig om te starten
+            </span>
           </p>
         </header>
 
         <div className="flex justify-center">
-          {/* BASIS PLAN (NU HET ENIGE PLAN) */}
           <div className="w-full max-w-md relative">
-            {/* BADGE */}
             <div className="absolute -top-5 left-0 right-0 flex justify-center z-30">
               <div className="bg-[#1A1A2E] text-white text-[11px] font-black px-6 py-2.5 rounded-full uppercase tracking-widest shadow-xl flex items-center gap-2">
                 <Sparkles
                   size={14}
                   className="text-[#4FC3F7]"
                   fill="currentColor"
-                />{" "}
+                />
                 7 dagen proefperiode
               </div>
             </div>
@@ -49,10 +51,6 @@ export default function Pricing() {
                   </span>
                   <span className="text-slate-400 font-bold text-lg">/mnd</span>
                 </div>
-                <p className="text-emerald-600 font-black text-[10px] uppercase mt-4 flex items-center justify-center gap-2 tracking-widest bg-emerald-50 py-2 rounded-full">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />{" "}
-                  Eerste week volledig gratis
-                </p>
               </div>
 
               {/* DOG SELECTOR */}
@@ -103,17 +101,21 @@ export default function Pricing() {
                 </ul>
               </div>
 
+              {/* LINK ZONDER STREEPJE */}
               <Button
                 asChild
-                className="w-full h-16 rounded-2xl bg-[#4FC3F7] hover:bg-[#1A1A2E] text-white font-black uppercase text-sm tracking-[0.15em] shadow-lg transition-all active:scale-95 border-none">
-                <Link href={`/onboarding?dogs=${dogCount}&trial=true`}>
-                  Start mijn gratis week
+                className="w-full h-16 rounded-2xl bg-[#1A1A2E] hover:bg-[#4FC3F7] text-white font-black uppercase text-sm tracking-[0.15em] shadow-lg transition-all active:scale-95 border-none">
+                <Link
+                  href={`/signup?redirect_url=/onboarding?dogs=${dogCount}`}>
+                  Start gratis week
                 </Link>
               </Button>
 
-              <p className="text-center text-[10px] font-bold text-slate-400 uppercase mt-4 tracking-tighter">
-                Geen verborgen kosten • Altijd direct opzegbaar
-              </p>
+              <div className="mt-6 text-center">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  Vrijblijvend proberen • Geen betaalgegevens nodig
+                </p>
+              </div>
             </div>
           </div>
         </div>

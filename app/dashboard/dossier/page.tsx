@@ -1,24 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   CheckCircle,
   AlertCircle,
   ArrowLeft,
-  Search,
   Calendar,
   Trash2,
   CameraOff,
   Loader2,
+  FileDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-interface Scan {
+interface DossierScan {
   id: string;
   tool_id: string;
   summary: string;
@@ -29,7 +29,7 @@ interface Scan {
   created_at: string;
 }
 
-const vertalingen: Record<string, string> = {
+const dossierVertalingen: Record<string, string> = {
   alles: "Alles",
   eyes: "Ogen",
   poop: "Ontlasting",
@@ -45,212 +45,229 @@ const vertalingen: Record<string, string> = {
   ears: "Oren",
 };
 
-export default function Geschiedenis() {
-  const [scans, setScans] = useState<Scan[]>([]);
+function DossierContent() {
+  const [dossierItems, setDossierItems] = useState<DossierScan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("alles");
+  const [actieveTab, setActieveTab] = useState("alles");
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    async function fetchScans() {
+    async function laadDossier() {
       try {
         const res = await fetch("/api/geschiedenis");
         const data = await res.json();
-        setScans(Array.isArray(data) ? data : []);
+        const items = Array.isArray(data) ? data : [];
+        setDossierItems(items);
+
+        // 1. Check URL params voor tab-activatie
+        const tabParam = searchParams.get("tab");
+        if (
+          tabParam &&
+          (dossierVertalingen[tabParam] ||
+            items.some((i) => i.tool_id === tabParam))
+        ) {
+          setActieveTab(tabParam);
+        }
+
+        // 2. Smooth scroll naar specifiek ID vanuit dashboard
+        if (window.location.hash) {
+          const targetId = window.location.hash.replace("#", "");
+          setTimeout(() => {
+            const element = document.getElementById(targetId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 600);
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Dossier error:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchScans();
-  }, []);
+    laadDossier();
+  }, [searchParams]);
 
-  const uniekeIDs = Array.from(new Set(scans.map((s) => s.tool_id)));
-  const categories = ["alles", ...uniekeIDs];
+  const dossierCategorieen = [
+    "alles",
+    ...Array.from(new Set(dossierItems.map((s) => s.tool_id))),
+  ];
 
-  async function handleDelete(id: string) {
-    if (!confirm("Weet je zeker dat je deze scan wilt verwijderen?")) return;
+  async function verwijderDossierItem(id: string) {
+    if (!confirm("Dit item verwijderen uit het dossier?")) return;
     try {
       const res = await fetch(`/api/geschiedenis/${id}`, { method: "DELETE" });
       if (res.ok) {
-        setScans((prev) => prev.filter((s) => s.id !== id));
+        setDossierItems((prev) => prev.filter((item) => item.id !== id));
       }
     } catch (err) {
       console.error(err);
     }
   }
 
-  const gefilterd = scans.filter((s) => {
-    const vertaaldeNaam = vertalingen[s.tool_id] || s.tool_id;
-    const matchesSearch =
-      s.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vertaaldeNaam.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === "alles" || s.tool_id === activeTab;
-    return matchesSearch && matchesTab;
+  const gefilterdDossier = dossierItems.filter((item) => {
+    return actieveTab === "alles" || item.tool_id === actieveTab;
   });
 
   if (loading)
     return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4FC3F7]" />
-          <span className="font-black text-[#1A1A2E] uppercase tracking-widest italic text-xs">
-            Gegevens ophalen...
-          </span>
-        </div>
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#4FC3F7]" />
       </div>
     );
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] p-6 md:p-10 lg:pl-10">
-      <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <header className="mb-10">
-          <h1
-            className="text-4xl md:text-6xl font-black  uppercase text-[#1A1A2E] leading-none tracking-tighter"
-            style={{ fontFamily: "'Syne', sans-serif" }}>
-            Scan <span className="text-[#4FC3F7]">Dossier</span>
+    <div className="w-full max-w-7xl ml-0 text-left">
+      {/* HEADER */}
+      <header className="mb-8 border-b border-slate-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#4FC3F7] hover:text-[#111827] transition-all">
+            <ArrowLeft size={14} /> Terug naar Dashboard
+          </Link>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tighter text-[#111827]">
+            Luna's <span className="text-[#4FC3F7]">Dossier</span>
           </h1>
-        </header>
+        </div>
+        <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:border-[#4FC3F7] transition-all w-fit shadow-sm">
+          <FileDown size={14} className="text-[#4FC3F7]" /> PDF Rapport
+        </button>
+      </header>
 
-        {/* CATEGORIE TABS (Scrollable) */}
-        <ScrollArea className="w-full whitespace-nowrap mb-8 pb-4">
-          <div className="flex w-max space-x-3">
-            {categories.map((cat) => (
-              <Button
+      {/* TABS: Direct zichtbaar en swipeable */}
+      <div className="mb-10">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 ml-1">
+          Filter op categorie
+        </p>
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex w-max space-x-2 pb-4">
+            {dossierCategorieen.map((cat) => (
+              <button
                 key={cat}
-                variant={activeTab === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab(cat)}
-                className={`rounded-full px-6 text-[10px] font-black uppercase tracking-widest h-10 transition-all ${
-                  activeTab === cat
-                    ? "bg-[#4FC3F7] hover:bg-[#3db0e3] text-white border-none shadow-lg shadow-[#4FC3F7]/20"
-                    : "bg-white text-slate-400 border-slate-200 hover:border-[#4FC3F7] hover:text-[#4FC3F7]"
+                onClick={() => setActieveTab(cat)}
+                className={`rounded-xl px-6 py-2.5 text-xs font-bold transition-all border-2 ${
+                  actieveTab === cat
+                    ? "bg-[#4FC3F7] border-[#4FC3F7] text-white shadow-md shadow-[#4FC3F7]/20"
+                    : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
                 }`}>
-                {vertalingen[cat] || cat.replace(/-/g, " ")}
-              </Button>
+                {dossierVertalingen[cat] || cat}
+              </button>
             ))}
           </div>
-          <ScrollBar orientation="horizontal" className="invisible" />
+          <ScrollBar
+            orientation="horizontal"
+            className="h-1 bg-slate-100 rounded-full"
+          />
         </ScrollArea>
+      </div>
 
-        {/* ZOEKEN */}
-        <div className="relative mb-10 max-w-md group">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#4FC3F7] transition-colors"
-            size={18}
-          />
-          <Input
-            className="h-14 pl-12 pr-4 rounded-2xl bg-white border-slate-200 text-xs font-bold placeholder:text-slate-300 focus-visible:ring-[#4FC3F7]/20 transition-all uppercase tracking-widest"
-            placeholder="ZOEKEN IN GEGEVENS..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* GRID MET ORIGINELE VERTICALE CARDS */}
+      {gefilterdDossier.length === 0 ? (
+        <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem]">
+          <p className="text-slate-400 text-sm font-medium italic">
+            Geen scans gevonden in deze categorie.
+          </p>
         </div>
-
-        {/* GRID MET KAARTEN */}
-        {gefilterd.length === 0 ? (
-          <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem]">
-            <p className="text-slate-300 font-black uppercase text-sm tracking-[0.2em] italic">
-              Geen resultaten gevonden.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {gefilterd.map((item) => (
-              <Card
-                key={item.id}
-                className="rounded-[2.5rem] border-slate-200/60 shadow-sm overflow-hidden hover:shadow-2xl hover:border-[#4FC3F7]/30 transition-all duration-500 group">
-                {/* IMAGE AREA */}
-                <div className="relative h-52 bg-slate-100 overflow-hidden">
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt="Scan Resultaat"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                      <CameraOff size={32} strokeWidth={1.5} />
-                    </div>
-                  )}
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm">
-                    {item.is_ok ? (
-                      <CheckCircle className="text-emerald-500" size={22} />
-                    ) : (
-                      <AlertCircle className="text-amber-500" size={22} />
-                    )}
+      ) : (
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          {gefilterdDossier.map((item) => (
+            <Card
+              key={item.id}
+              id={item.id}
+              className={`rounded-[2.5rem] border-2 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl ${
+                !item.is_ok
+                  ? "border-red-200 ring-1 ring-red-50"
+                  : "border-slate-300"
+              }`}>
+              {/* IMAGE (BOVENOP) */}
+              <div className="relative h-56 md:h-64 bg-slate-50">
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt="Scan"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-200">
+                    <CameraOff size={40} />
                   </div>
-                  <Badge className="absolute bottom-4 left-4 bg-[#1A1A2E]/80 backdrop-blur-md text-[9px] font-black uppercase tracking-widest border-none">
-                    {vertalingen[item.tool_id] || item.tool_id}
-                  </Badge>
+                )}
+                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-md">
+                  {item.is_ok ? (
+                    <CheckCircle className="text-green-500" size={20} />
+                  ) : (
+                    <AlertCircle className="text-red-500" size={20} />
+                  )}
+                </div>
+                <Badge
+                  className={`absolute bottom-4 left-4 border-none text-[9px] font-black uppercase tracking-wider ${item.is_ok ? "bg-[#111827]" : "bg-red-600"} text-white py-1.5 px-3`}>
+                  {dossierVertalingen[item.tool_id] || item.tool_id}
+                </Badge>
+              </div>
+
+              {/* CONTENT (ONDER) */}
+              <CardContent className="p-6 md:p-8">
+                <div className="mb-4 text-left">
+                  <h3 className="font-extrabold text-xl text-[#111827]">
+                    {dossierVertalingen[item.tool_id] || item.tool_id}
+                  </h3>
+                  <p
+                    className={`text-sm font-bold ${item.is_ok ? "text-green-600" : "text-red-600"} mt-1`}>
+                    {item.summary}
+                  </p>
                 </div>
 
-                <CardContent className="p-7">
-                  <div className="mb-5">
-                    <h3
-                      className="font-black text-xl uppercase italic leading-none text-[#1A1A2E] mb-2 tracking-tight"
-                      style={{ fontFamily: "'Syne', sans-serif" }}>
-                      {vertalingen[item.tool_id] ||
-                        item.tool_id.replace(/-/g, " ")}
-                    </h3>
-                    <p
-                      className={`${item.is_ok ? "text-emerald-600" : "text-rose-600"} font-black text-[11px] uppercase italic tracking-wider`}>
-                      {item.summary}
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-50/80 rounded-3xl p-5 mb-6 space-y-4 border border-slate-100">
-                    <div>
-                      <span className="block font-black text-[9px] uppercase text-slate-400 italic mb-1 tracking-widest">
-                        Inzicht:
+                <div className="bg-slate-50 rounded-2xl p-4 md:p-5 mb-6 border border-slate-100 text-left">
+                  <p className="text-slate-600 text-[13px] md:text-sm leading-relaxed mb-3 italic">
+                    "{item.details}"
+                  </p>
+                  {item.advice && (
+                    <div className="pt-3 border-t border-slate-200">
+                      <span className="text-[10px] font-black uppercase text-[#4FC3F7] tracking-wider block mb-1">
+                        Dossier Advies:
                       </span>
-                      <p className="text-slate-600 text-[13px] leading-relaxed font-medium">
-                        {item.details}
+                      <p className="text-[#111827] text-sm font-bold leading-snug">
+                        {item.advice}
                       </p>
                     </div>
-                    {item.advice && (
-                      <div className="pt-3 border-t border-slate-200/50">
-                        <span className="block font-black text-[9px] uppercase text-[#4FC3F7] italic mb-1 tracking-widest">
-                          AI Advies:
-                        </span>
-                        <p className="text-slate-800 text-[13px] font-bold leading-relaxed">
-                          {item.advice}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  )}
+                </div>
 
-                  {/* FOOTER */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                      <Calendar size={14} className="text-[#4FC3F7]" />
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleDateString(
-                            "nl-NL",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )
-                        : "—"}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(item.id)}
-                      className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
-                      <Trash2 size={18} />
-                    </Button>
+                <div className="flex justify-between items-center mt-auto">
+                  <div className="flex items-center gap-2 text-slate-400 text-[10px] md:text-xs font-bold">
+                    <Calendar size={14} className="text-[#4FC3F7]" />
+                    {new Date(item.created_at).toLocaleDateString("nl-NL")}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => verwijderDossierItem(item.id)}
+                    className="h-9 w-9 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function DossierPagina() {
+  return (
+    <main className="min-h-screen bg-white p-4 md:p-10 lg:p-12 font-jakarta antialiased">
+      <Suspense
+        fallback={
+          <div className="flex h-screen items-center justify-center">
+            <Loader2 className="animate-spin text-[#4FC3F7]" />
           </div>
-        )}
-      </div>
+        }>
+        <DossierContent />
+      </Suspense>
     </main>
   );
 }

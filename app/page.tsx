@@ -91,7 +91,7 @@ export default function Home() {
           Next-Gen Veterinary AI
         </Badge>
 
-        <h1 className="text-4xl md:text-7xl font-black uppercase  mb-8">
+        <h1 className="text-4xl md:text-7xl font-black   mb-8">
           AI Gezondheidsscan, <br />
           <span className="text-[#4FC3F7] ">voor jouw doggy.</span>
         </h1>
@@ -103,13 +103,14 @@ export default function Home() {
 
         <div className="flex justify-center items-center gap-4">
           <Show when="signed-out">
-            <SignUpButton mode="modal">
+            <Link href="/signup?redirect_url=/onboarding">
+              {" "}
               <Button
                 size="lg"
                 className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
-                Start Gratis Check <ArrowRight className="ml-2 w-5 h-5" />
+                Start Gratis Week <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-            </SignUpButton>
+            </Link>
           </Show>
 
           <Show when="signed-in">
@@ -167,21 +168,27 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="py-20 px-6 text-center border-t border-slate-100 bg-white">
-        <Link
-          href="/"
-          className="flex items-center justify-center gap-2 text-xl font-black uppercase tracking-tighter mb-6 text-[#1A1A2E]"
-          style={{ fontFamily: "'Syne', sans-serif" }}>
-          <PawPrint className="text-[#4FC3F7] w-6 h-6" fill="currentColor" />
-          PetCheck.ai
-        </Link>
-        <div className="max-w-md mx-auto">
-          <p className="text-[#AAAAAA] text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
-            © 2026 PetCheck AI. <br />
-            <span className="opacity-50 text-[10px]">
-              Voor informatieve doeleinden. Vervangt geen professioneel
-              dierenartsadvies.
+        <div className="flex flex-col items-center justify-center gap-6">
+          {/* HET LOGO (Zelfde stijl als header, maar gecentreerd) */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="bg-[#4FC3F7] text-white w-9 h-9 flex items-center justify-center rounded-xl shadow-sm">
+              <PawPrint fill="currentColor" size={20} />
+            </div>
+            <span className="font-heading font-extrabold text-[#1A1A2E] tracking-tighter text-lg uppercase">
+              Doggy<span className="text-[#4FC3F7]">scan.nl</span>
             </span>
-          </p>
+          </Link>
+
+          {/* DE TEKST */}
+          <div className="max-w-md mx-auto">
+            <p className="text-[#AAAAAA] text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
+              © 2026 Doggyscan.nl <br />
+              <span className="opacity-50 text-[10px]">
+                Voor informatieve doeleinden. Vervangt geen professioneel
+                dierenartsadvies.
+              </span>
+            </p>
+          </div>
         </div>
       </footer>
     </div>
