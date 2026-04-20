@@ -70,7 +70,7 @@ const tools = [
   },
   {
     id: "coat",
-    icon: "✨",
+    icon: "🐕",
     title: "Vachtkwaliteit",
     description: "Beoordeel glans en conditie",
     bg: "#FFF8E1",
@@ -110,7 +110,7 @@ const tools = [
   },
   {
     id: "ears",
-    icon: "👂",
+    icon: "🐶",
     title: "Oor Check",
     description: "Detecteer roodheid of mijt",
     bg: "#E1F5EE",

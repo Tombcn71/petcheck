@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider localization={nlNL}>
-      <html lang="nl">
+      <html lang="nl" className="scroll-smooth">
         <body
           /* 2. Voeg de nieuwe font-variable toe en zet font-jakarta als standaard */
           className={`${jakarta.variable} ${geistMono.variable} font-jakarta antialiased`}>

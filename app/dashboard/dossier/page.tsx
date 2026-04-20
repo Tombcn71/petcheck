@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   CheckCircle,
   AlertCircle,
@@ -46,19 +47,30 @@ const dossierVertalingen: Record<string, string> = {
 };
 
 function DossierContent() {
+  const { user } = useUser();
   const [dossierItems, setDossierItems] = useState<DossierScan[]>([]);
+  const [dog, setDog] = useState<any>(null); // State voor de hond, net als in Dashboard
   const [loading, setLoading] = useState(true);
   const [actieveTab, setActieveTab] = useState("alles");
 
   const searchParams = useSearchParams();
+  const dogName = dog?.name || "Je hond";
 
   useEffect(() => {
     async function laadDossier() {
       try {
-        const res = await fetch("/api/geschiedenis");
-        const data = await res.json();
+        // We gebruiken hier exact dezelfde routes als in je dashboard!
+        const [resGeschiedenis, resHond] = await Promise.all([
+          fetch("/api/geschiedenis"),
+          fetch("/api/dogs"), // DASHBOARD STIJL
+        ]);
+
+        const data = await resGeschiedenis.json();
+        const dogData = await resHond.json();
+
         const items = Array.isArray(data) ? data : [];
         setDossierItems(items);
+        if (dogData) setDog(dogData);
 
         // 1. Check URL params voor tab-activatie
         const tabParam = searchParams.get("tab");
@@ -118,25 +130,42 @@ function DossierContent() {
     );
 
   return (
-    <div className="w-full max-w-7xl ml-0 text-left">
-      {/* HEADER */}
-      <header className="mb-8 border-b border-slate-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#4FC3F7] hover:text-[#111827] transition-all">
-            <ArrowLeft size={14} /> Terug naar Dashboard
-          </Link>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tighter text-[#111827]">
-            Luna's <span className="text-[#4FC3F7]">Dossier</span>
-          </h1>
+    <div className="w-full max-w-7xl ml-0 text-left font-jakarta">
+      {/* HEADER: Aangepast naar Dashboard look */}
+      <header className="mb-12 border-b border-slate-100 pb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6 md:gap-8">
+          {/* HONDENFOTO */}
+          <div className="h-20 w-20 md:h-24 md:w-24 rounded-[2rem] overflow-hidden shadow-xl border-4 border-[#1A1A2E] shrink-0 bg-slate-50 flex items-center justify-center">
+            {dog?.image_url ? (
+              <img
+                src={dog.image_url}
+                alt={dogName}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <span className="text-4xl">🐶</span>
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#4FC3F7] hover:text-[#111827] transition-all mb-1">
+              <ArrowLeft size={14} /> Terug naar Dashboard
+            </Link>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-[#111827] uppercase italic leading-none">
+              {dogName}'s{" "}
+              <span className="text-[#4FC3F7] not-italic">Dossier</span>
+            </h1>
+          </div>
         </div>
-        <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:border-[#4FC3F7] transition-all w-fit shadow-sm">
-          <FileDown size={14} className="text-[#4FC3F7]" /> PDF Rapport
+
+        <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1A1A2E] rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-[4px_4px_0_0_#4FC3F7] active:translate-y-1 active:shadow-none transition-all w-fit">
+          <FileDown size={16} /> PDF Rapport
         </button>
       </header>
 
-      {/* TABS: Direct zichtbaar en swipeable */}
+      {/* TABS */}
       <div className="mb-10">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 ml-1">
           Filter op categorie
@@ -156,14 +185,11 @@ function DossierContent() {
               </button>
             ))}
           </div>
-          <ScrollBar
-            orientation="horizontal"
-            className="h-1 bg-slate-100 rounded-full"
-          />
+          <ScrollBar orientation="horizontal" className="h-1 bg-slate-100" />
         </ScrollArea>
       </div>
 
-      {/* GRID MET ORIGINELE VERTICALE CARDS */}
+      {/* GRID */}
       {gefilterdDossier.length === 0 ? (
         <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem]">
           <p className="text-slate-400 text-sm font-medium italic">
@@ -181,7 +207,6 @@ function DossierContent() {
                   ? "border-red-200 ring-1 ring-red-50"
                   : "border-slate-300"
               }`}>
-              {/* IMAGE (BOVENOP) */}
               <div className="relative h-56 md:h-64 bg-slate-50">
                 {item.image_url ? (
                   <img
@@ -207,7 +232,6 @@ function DossierContent() {
                 </Badge>
               </div>
 
-              {/* CONTENT (ONDER) */}
               <CardContent className="p-6 md:p-8">
                 <div className="mb-4 text-left">
                   <h3 className="font-extrabold text-xl text-[#111827]">

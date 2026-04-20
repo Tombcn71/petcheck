@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { auth } from "@clerk/nextjs/server"; // Importeer auth
 
 export async function GET() {
   try {
-    const { userId } = await auth(); // Wacht op de auth promise
-    if (!userId)
-      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-
     const sql = neon(process.env.DATABASE_URL!);
-
-    // Haal de hond op die bij deze specifieke gebruiker hoort
+    // We halen alles op uit de tabel 'medicatie'
     const data = await sql`
-      SELECT * FROM dogs 
-      WHERE user_id = ${userId} 
-      LIMIT 1
+      SELECT * FROM medicatie 
+      ORDER BY id DESC
     `;
-
-    return NextResponse.json(data[0] || null);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("GET Error:", error);
     return NextResponse.json({ error: "Fout bij ophalen" }, { status: 500 });
@@ -26,44 +18,26 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth(); // Wacht op de auth promise
-    if (!userId)
-      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-
     const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
 
-    // We mappen de velden van de Onboarding/Profiel naar de database
-    // Let op: we gebruiken de userId van Clerk voor de user_id kolom
-    const result = await sql`
-      INSERT INTO dogs (user_id, name, breed, age, size, weight, gender, sterilized, image_url)
-      VALUES (
-        ${userId}, 
-        ${body.name}, 
-        ${body.breed || ""}, 
-        ${body.age?.toString() || ""}, 
-        ${body.size || ""}, 
-        ${body.weight || ""}, 
-        ${body.gender || ""}, 
-        ${body.sterilized || ""}, 
-        ${body.image_url || body.image || null}
-      )
-      ON CONFLICT (user_id) 
-      DO UPDATE SET 
-        name = EXCLUDED.name,
-        breed = EXCLUDED.breed,
-        age = EXCLUDED.age,
-        size = EXCLUDED.size,
-        weight = EXCLUDED.weight,
-        gender = EXCLUDED.gender,
-        sterilized = EXCLUDED.sterilized,
-        image_url = EXCLUDED.image_url
+    // Loggen om te debuggen in je terminal
+    console.log("Ontvangen in API:", body);
+
+    // We gebruiken de veldnamen uit je frontend: naam, dosering, frequentie, notitie
+    const nieuw = await sql`
+      INSERT INTO medicatie (naam, dosering, frequentie, notitie)
+      VALUES (${body.naam}, ${body.dosering}, ${body.frequentie}, ${body.notitie})
       RETURNING *
     `;
 
-    return NextResponse.json(result[0]);
+    return NextResponse.json(nieuw[0]);
   } catch (error) {
     console.error("POST Error:", error);
-    return NextResponse.json({ error: "Fout bij opslaan" }, { status: 500 });
+    // Geeft een gedetailleerde fout terug aan de frontend
+    return NextResponse.json(
+      { error: "Fout bij opslaan in database" },
+      { status: 500 },
+    );
   }
 }

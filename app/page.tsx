@@ -41,7 +41,7 @@ const features = [
     desc: "AI-analyse van de gezichtsuitdrukking voor acute pijn.",
   },
   {
-    icon: "✨",
+    icon: "🐕",
     title: "Vacht & Glans",
     desc: "Beoordeel doffe vacht en mogelijke voedingstekorten.",
   },
@@ -61,7 +61,7 @@ const features = [
     desc: "Identificeer de teek en bepaal het risico op Lyme.",
   },
   {
-    icon: "👂",
+    icon: "🐶",
     title: "Oor Gezondheid",
     desc: "Spoor oormijt en diepliggende ontstekingen op.",
   },
@@ -127,6 +127,9 @@ export default function Home() {
 
       {/* FEATURE SECTION */}
       <section className="bg-[#F9FAFB] py-24 px-6 border-y border-slate-100">
+        <section id="features" className="scroll-mt-20">
+          {/* ... rest van je features content ... */}
+        </section>
         <div className="max-w-[1200px] mx-auto">
           <header className="text-center mb-20">
             <h2

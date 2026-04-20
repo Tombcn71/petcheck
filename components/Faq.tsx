@@ -39,6 +39,9 @@ const faqs = [
 export default function Faq() {
   return (
     <section className="py-24 bg-white border-t border-slate-50">
+      <section id="faq" className="scroll-mt-20">
+        {/* ... rest van je FAQ content ... */}
+      </section>
       <div className="max-w-3xl mx-auto px-6">
         <header className="text-center mb-16">
           <h2

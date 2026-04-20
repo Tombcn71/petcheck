@@ -28,7 +28,7 @@ const menuItems = [
   { title: "Dossier", url: "/dashboard/dossier", icon: History },
   { title: "Vaccinaties", url: "/dashboard/vaccinaties", icon: History },
   { title: "Medicatie", url: "/dashboard/medicatie", icon: History },
-  { title: "Profiel", url: "/dashboard/profiel", icon: User },
+  { title: "Profiel", url: "/dashboard/profiel", icon: PawPrint },
   { title: "Instellingen", url: "/dashboard/instellingen", icon: Settings },
 ];
 

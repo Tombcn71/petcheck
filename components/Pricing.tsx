@@ -11,6 +11,9 @@ export default function Pricing() {
 
   return (
     <section className="w-full bg-[#F8FAFC] py-20 font-sans">
+      <section id="pricing" className="scroll-mt-20">
+        {/* ... rest van je pricing content ... */}
+      </section>
       <div className="max-w-6xl mx-auto px-4">
         {/* RUSTIGE HEADER */}
         <header className="text-center mb-16 max-w-2xl mx-auto">
