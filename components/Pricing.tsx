@@ -1,126 +1,142 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle2, Plus, Minus, Sparkles } from "lucide-react";
+import { CheckCircle2, Sparkles, Gift, Zap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function Pricing() {
-  const [dogCount, setDogCount] = useState(1);
-  const totalPrice = (9.99 + (dogCount - 1) * 5.0).toFixed(2);
+  const features = [
+    "Toegang voor 3 honden",
+    "Onbeperkte AI-gezondheidsscans",
+    "Historisch medisch dossier",
+    "PDF rapport voor de dierenarts",
+    "Direct resultaat in 30 seconden",
+  ];
 
   return (
-    <section className="w-full bg-[#F8FAFC] py-20 font-sans">
-      <section id="pricing" className="scroll-mt-20">
-        {/* ... rest van je pricing content ... */}
-      </section>
+    <section
+      id="pricing"
+      className="w-full bg-[#F0F9FF] py-20 font-sans scroll-mt-20">
       <div className="max-w-6xl mx-auto px-4">
-        {/* RUSTIGE HEADER */}
+        {/* HEADER */}
         <header className="text-center mb-16 max-w-2xl mx-auto">
           <h2
-            className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-4 text-[#1A1A2E]"
+            className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-4 text-[#01579B]"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            Start je <span className="text-[#4FC3F7]">gratis week</span>
+            START JE <span className="text-[#4FC3F7]">GRATIS WEEK</span>
           </h2>
-          <p className="text-slate-500 font-medium text-lg leading-relaxed">
+          <p className="text-slate-500 font-bold text-lg leading-relaxed">
             Ontdek wat AI voor de gezondheid van je hond kan betekenen.
-            <span className="block text-emerald-600 font-bold text-sm mt-2 uppercase tracking-widest">
+            <span className="block text-[#0288D1] font-black text-sm mt-2 uppercase tracking-[0.2em]">
               Geen betaalgegevens nodig om te starten
             </span>
           </p>
         </header>
 
-        <div className="flex justify-center">
-          <div className="w-full max-w-md relative">
-            <div className="absolute -top-5 left-0 right-0 flex justify-center z-30">
-              <div className="bg-[#1A1A2E] text-white text-[11px] font-black px-6 py-2.5 rounded-full uppercase tracking-widest shadow-xl flex items-center gap-2">
-                <Sparkles
-                  size={14}
-                  className="text-[#4FC3F7]"
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* MAANDELIJKSE KAART */}
+          <div className="bg-white rounded-[2.5rem] border-4 border-[#4FC3F7]/30 p-8 flex flex-col relative text-center shadow-lg transition-transform hover:scale-[1.02]">
+            <span className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-6">
+              Maandelijks opzegbaar
+            </span>
+            <div className="flex items-baseline justify-center gap-1 mb-2">
+              <span className="text-7xl font-black text-[#01579B]">€10</span>
+              <span className="text-[#4FC3F7] font-bold text-xl">/mnd</span>
+            </div>
+            <p className="text-[#0288D1] font-bold text-sm uppercase mb-8">
+              Flexibel & Vrijblijvend
+            </p>
+
+            <ul className="space-y-4 mb-10 flex-grow text-left">
+              {features.map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-start gap-4 text-sm font-bold text-slate-600 leading-tight">
+                  <CheckCircle2
+                    size={18}
+                    className="text-[#4FC3F7] shrink-0"
+                    strokeWidth={3}
+                  />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              asChild
+              className="w-full h-16 rounded-2xl bg-white border-4 border-[#01579B] text-[#01579B] font-black uppercase text-sm tracking-widest hover:bg-[#F0F9FF] transition-all">
+              <Link href="/signup?interval=month&dogs=3">Kies Maandelijks</Link>
+            </Button>
+          </div>
+
+          {/* JAARLIJKSE KAART (DE DEAL) */}
+          <div className="bg-white rounded-[2.5rem] border-4 border-[#4FC3F7] p-8 flex flex-col relative text-center shadow-[16px_16px_0px_0px_rgba(79,195,247,0.4)] transition-transform hover:scale-[1.02]">
+            {/* 6 MAANDEN GRATIS BADGE */}
+            <div className="absolute -top-6 left-0 right-0 flex justify-center z-30">
+              <div className="bg-[#01579B] text-white text-[12px] font-black px-6 py-3 rounded-full uppercase tracking-widest shadow-xl flex items-center gap-2 border-2 border-white">
+                <Gift size={16} className="text-[#4FC3F7]" />6 MAANDEN GRATIS
+              </div>
+            </div>
+
+            <span className="text-[#4FC3F7] text-[11px] font-black uppercase tracking-[0.2em] mb-6">
+              Jaarlijks Roedel Plan
+            </span>
+
+            <div className="flex items-baseline justify-center gap-1 mb-2">
+              <span className="text-8xl font-black text-[#01579B]">€5</span>
+              <span className="text-[#4FC3F7] font-black text-2xl">/mnd</span>
+            </div>
+
+            <div className="mb-8 p-3 bg-[#F0F9FF] rounded-2xl border-2 border-dashed border-[#4FC3F7]/30">
+              <p className="text-[#01579B] font-black text-lg uppercase">
+                €60 PER JAAR
+              </p>
+              <p className="text-slate-400 text-xs font-bold line-through">
+                NORMAAL €120
+              </p>
+            </div>
+
+            <ul className="space-y-4 mb-10 flex-grow text-left">
+              {features.map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-start gap-4 text-sm font-bold text-slate-700 leading-tight">
+                  <CheckCircle2
+                    size={18}
+                    className="text-[#4FC3F7] shrink-0"
+                    strokeWidth={3}
+                  />
+                  {feature}
+                </li>
+              ))}
+              <li className="flex items-start gap-4 text-sm font-black text-[#0288D1] leading-tight italic">
+                <Zap
+                  size={18}
+                  className="text-[#4FC3F7] shrink-0"
                   fill="currentColor"
                 />
-                7 dagen proefperiode
-              </div>
-            </div>
+                Bespaar 50% per jaar!
+              </li>
+            </ul>
 
-            <div className="h-full bg-white rounded-[2.5rem] border-4 border-[#1A1A2E] p-10 flex flex-col shadow-[16px_16px_0px_0px_rgba(79,195,247,0.2)] relative z-10">
-              <div className="mb-8 text-center">
-                <span className="text-[#4FC3F7] text-[11px] font-black uppercase tracking-[0.2em]">
-                  Premium Toegang
-                </span>
-                <div className="mt-4 flex items-baseline justify-center gap-1">
-                  <span className="text-6xl font-black text-[#1A1A2E]">
-                    €{totalPrice}
-                  </span>
-                  <span className="text-slate-400 font-bold text-lg">/mnd</span>
-                </div>
-              </div>
-
-              {/* DOG SELECTOR */}
-              <div className="bg-[#F8FAFC] rounded-2xl p-5 mb-8 flex items-center justify-between border-2 border-slate-100">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                    Aantal honden
-                  </span>
-                  <span className="text-3xl font-black text-[#1A1A2E] leading-none mt-1">
-                    {dogCount}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => dogCount > 1 && setDogCount(dogCount - 1)}
-                    className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center hover:bg-slate-50 transition-all border-2 border-slate-100 text-[#1A1A2E]">
-                    <Minus size={20} strokeWidth={3} />
-                  </button>
-                  <button
-                    onClick={() => setDogCount(dogCount + 1)}
-                    className="w-12 h-12 bg-[#1A1A2E] rounded-xl shadow-sm flex items-center justify-center hover:bg-[#2A2A4E] transition-all text-white">
-                    <Plus size={20} strokeWidth={3} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-grow">
-                <ul className="space-y-4 mb-10">
-                  {[
-                    "Onbeperkt AI-Gezondheidsscans",
-                    "Scan op 12+ ziektebeelden",
-                    "Direct PDF Rapport voor de arts",
-                    "Automatische Dossieropbouw",
-                    "24/7 AI-Ondersteuning",
-                  ].map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-center gap-4 text-sm font-bold text-slate-700">
-                      <div className="bg-[#4FC3F7]/10 p-1 rounded-full">
-                        <CheckCircle2
-                          size={18}
-                          className="text-[#4FC3F7] shrink-0"
-                        />
-                      </div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* LINK ZONDER STREEPJE */}
-              <Button
-                asChild
-                className="w-full h-16 rounded-2xl bg-[#1A1A2E] hover:bg-[#4FC3F7] text-white font-black uppercase text-sm tracking-[0.15em] shadow-lg transition-all active:scale-95 border-none">
-                <Link
-                  href={`/signup?redirect_url=/onboarding?dogs=${dogCount}`}>
-                  Start gratis week
-                </Link>
-              </Button>
-
-              <div className="mt-6 text-center">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                  Vrijblijvend proberen • Geen betaalgegevens nodig
-                </p>
-              </div>
-            </div>
+            <Button
+              asChild
+              className="w-full h-20 rounded-2xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-lg tracking-widest transition-all shadow-lg active:scale-95 border-none">
+              <Link href="/signup?interval=year&dogs=3">Start Gratis Week</Link>
+            </Button>
           </div>
+        </div>
+
+        <div className="mt-16 text-center">
+          <div className="flex items-center justify-center gap-2 text-[#4FC3F7] mb-4">
+            <Sparkles size={20} fill="currentColor" />
+            <span className="text-sm font-black uppercase tracking-[0.3em] text-[#01579B]">
+              Kwaliteitsgarantie
+            </span>
+          </div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+            7 dagen proefperiode • Altijd opzegbaar • Geen betaalgegevens nodig
+          </p>
         </div>
       </div>
     </section>

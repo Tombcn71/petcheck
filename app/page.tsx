@@ -133,9 +133,9 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto">
           <header className="text-center mb-20">
             <h2
-              className="text-2xl md:text-4xl font-black uppercase tracking-tighter mb-4"
+              className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-4 text-[#1A1A2E]"
               style={{ fontFamily: "'Syne', sans-serif" }}>
-              Medische Mogelijkheden
+              Scan <span className="text-[#4FC3F7]">Mogelijkheden</span>
             </h2>
             <div className="h-1.5 w-20 bg-[#4FC3F7] mx-auto rounded-full" />
           </header>
