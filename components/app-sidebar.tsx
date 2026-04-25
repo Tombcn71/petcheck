@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react"; // Toegevoegd
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -11,6 +12,7 @@ import {
   Settings,
   PawPrint,
   X,
+  Loader2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,24 +34,21 @@ const menuItems = [
   { title: "Instellingen", url: "/dashboard/instellingen", icon: Settings },
 ];
 
-export function AppSidebar() {
+// --- DE WERKELIJKE CONTENT ---
+function SidebarContentInternal() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { setOpenMobile } = useSidebar();
 
-  // De cruciale stap: pak het ID van de hond uit de URL
   const dogId = searchParams.get("dogId");
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-slate-100 bg-white relative">
+    <>
       <SidebarHeader className="h-20 flex flex-row items-center px-6 border-b border-slate-50 bg-white"></SidebarHeader>
 
       <SidebarContent className="p-4 bg-white relative flex flex-col h-full">
         <SidebarMenu className="gap-2 flex-1">
           {menuItems.map((item) => {
-            // FIX: Als we dogId hebben (bijv. 21), maken we van "/dashboard/dossier" -> "/dashboard/dossier?dogId=21"
             const finalUrl = dogId ? `${item.url}?dogId=${dogId}` : item.url;
 
             return (
@@ -80,6 +79,24 @@ export function AppSidebar() {
           <X size={32} strokeWidth={3} />
         </button>
       </SidebarContent>
+    </>
+  );
+}
+
+// --- DE HOOFD EXPORT MET SUSPENSE ---
+export function AppSidebar() {
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-slate-100 bg-white relative">
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center p-4">
+            <Loader2 className="animate-spin text-slate-300" />
+          </div>
+        }>
+        <SidebarContentInternal />
+      </Suspense>
     </Sidebar>
   );
 }
