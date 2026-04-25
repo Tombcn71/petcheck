@@ -5,7 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { nlNL } from "@clerk/localizations";
-import { InstallPrompt } from "@/components/InstallPrompt"; // Importeer de installatie-vraag
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -21,7 +21,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Doggyscan.nl - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
-  // manifest: "/manifest.json", // Dit mag weg als je app/manifest.ts gebruikt
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -40,6 +39,7 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+// CRUCIAAL: Gebruik exact deze export-vorm
 export default function RootLayout({
   children,
 }: {
@@ -53,9 +53,6 @@ export default function RootLayout({
           <TooltipProvider delayDuration={0}>
             <Navbar />
             <main>{children}</main>
-            {/* Dit is de component die vraagt om te installeren 
-               gebaseerd op de documentatie die je stuurde 
-            */}
             <InstallPrompt />
           </TooltipProvider>
         </body>
