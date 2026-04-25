@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Save, ArrowLeft, Camera, Loader2, ChevronRight } from "lucide-react";
+import { Save, ArrowLeft, Camera, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function ProfielPage() {
+// Wrapper om useSearchParams heen voor Next.js 13/14/15
+function ProfielContent() {
   const { user } = useUser();
+  const searchParams = useSearchParams();
+  const dogId = searchParams.get("dogId");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -23,22 +28,34 @@ export default function ProfielPage() {
     image_url: "",
   });
 
+  // 1. DATA OPHALEN VOOR SPECIFIEKE HOND
   useEffect(() => {
     const fetchDogData = async () => {
+      if (!dogId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch("/api/dogs");
         if (!res.ok) throw new Error("Kon data niet ophalen");
         const data = await res.json();
-        if (data) {
+
+        // Zoek de specifieke hond in de roedel
+        const currentDog = Array.isArray(data)
+          ? data.find((d: any) => d.id.toString() === dogId)
+          : data;
+
+        if (currentDog) {
           setDogData({
-            name: data.name || "",
-            breed: data.breed || "",
-            age: data.age || "",
-            size: data.size || "",
-            weight: data.weight || "",
-            gender: data.gender || "",
-            sterilized: data.sterilized || "",
-            image_url: data.image_url || "",
+            name: currentDog.name || "",
+            breed: currentDog.breed || "",
+            age: currentDog.age || "",
+            size: currentDog.size || "",
+            weight: currentDog.weight || "",
+            gender: currentDog.gender || "",
+            sterilized: currentDog.sterilized || "",
+            image_url: currentDog.image_url || "",
           });
         }
       } catch (error) {
@@ -48,8 +65,9 @@ export default function ProfielPage() {
       }
     };
     fetchDogData();
-  }, []);
+  }, [dogId]);
 
+  // 2. AFBEELDING UPLOADEN
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -59,10 +77,11 @@ export default function ProfielPage() {
     reader.onload = async () => {
       const base64Image = reader.result as string;
       try {
+        // We sturen de PATCH naar de API met het dogId zodat hij de juiste hond update
         const res = await fetch("/api/dogs", {
-          method: "POST",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...dogData, image: base64Image }),
+          body: JSON.stringify({ ...dogData, dogId, image: base64Image }),
         });
         if (res.ok) {
           const result = await res.json();
@@ -77,16 +96,18 @@ export default function ProfielPage() {
     reader.readAsDataURL(file);
   };
 
+  // 3. PROFIEL OPSLAAN
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
       const res = await fetch("/api/dogs", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...dogData, image: null }),
+        body: JSON.stringify({ ...dogData, dogId, image: null }),
       });
-      if (res.ok) alert("Profiel succesvol bijgewerkt!");
+      if (res.ok)
+        alert("Profiel van " + dogData.name + " succesvol bijgewerkt!");
     } catch (error) {
       alert("Er ging iets mis.");
     } finally {
@@ -96,7 +117,16 @@ export default function ProfielPage() {
 
   if (loading)
     return (
-      <div className="p-12 font-black uppercase text-slate-300">Laden...</div>
+      <div className="p-12 flex items-center gap-4 font-black uppercase text-slate-300">
+        <Loader2 className="animate-spin" size={20} /> Laden...
+      </div>
+    );
+
+  if (!dogId)
+    return (
+      <div className="p-12 font-black uppercase text-red-400">
+        Geen hond geselecteerd. Ga terug naar het dashboard.
+      </div>
     );
 
   return (
@@ -143,7 +173,11 @@ export default function ProfielPage() {
                 </div>
               )}
               <div
-                className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${isUploading ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                  isUploading
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}>
                 {isUploading ? (
                   <Loader2 className="text-white animate-spin" />
                 ) : (
@@ -250,7 +284,11 @@ export default function ProfielPage() {
                     key={g}
                     type="button"
                     onClick={() => setDogData({ ...dogData, gender: g })}
-                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${dogData.gender === g ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]" : "border-slate-100 text-slate-400"}`}>
+                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${
+                      dogData.gender === g
+                        ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]"
+                        : "border-slate-100 text-slate-400"
+                    }`}>
                     {g}
                   </button>
                 ))}
@@ -268,7 +306,11 @@ export default function ProfielPage() {
                     key={s}
                     type="button"
                     onClick={() => setDogData({ ...dogData, sterilized: s })}
-                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${dogData.sterilized === s ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]" : "border-slate-100 text-slate-400"}`}>
+                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${
+                      dogData.sterilized === s
+                        ? "border-[#4FC3F7] bg-blue-50 text-[#1A1A2E]"
+                        : "border-slate-100 text-slate-400"
+                    }`}>
                     {s}
                   </button>
                 ))}
@@ -290,5 +332,14 @@ export default function ProfielPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// Default export met Suspense (vereist voor useSearchParams in Next.js)
+export default function ProfielPage() {
+  return (
+    <Suspense fallback={<div>Laden...</div>}>
+      <ProfielContent />
+    </Suspense>
   );
 }

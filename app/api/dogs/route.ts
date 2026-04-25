@@ -5,14 +5,23 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
   try {
+    // Correcte manier voor Clerk v5+ in Route Handlers
     const { userId } = await auth();
-    if (!userId)
+
+    if (!userId) {
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
 
     const sql = neon(process.env.DATABASE_URL!);
-    const result =
-      await sql`SELECT * FROM dogs WHERE user_id = ${userId} LIMIT 1`;
-    return NextResponse.json(result[0] || null);
+
+    // Haal alle honden op
+    const result = await sql`
+      SELECT * FROM dogs 
+      WHERE user_id = ${userId} 
+      ORDER BY created_at ASC
+    `;
+
+    return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -20,12 +29,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    // 1. Auth check (Exact als analyze)
     const { userId } = await auth();
-    if (!userId)
+    if (!userId) {
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
 
-    // 2. Input check
     const body = await req.json();
     const {
       name,
@@ -39,57 +47,85 @@ export async function POST(req: Request) {
       sterilized,
     } = body;
 
-    let finalImageUrl = image_url; // Houd de oude URL vast als er geen nieuwe foto is
+    let finalImageUrl = image_url;
 
-    // 3. Blob Upload (Exact dezelfde logica als analyze)
-    // We kijken of 'image' een base64 string is (begint met data:image)
     if (image && image.startsWith("data:image")) {
       const base64Data = image.split(",")[1];
       const buffer = Buffer.from(base64Data, "base64");
-
       const blob = await put(`dogs/${userId}/${Date.now()}.jpg`, buffer, {
         access: "public",
         contentType: "image/jpeg",
       });
-
-      finalImageUrl = blob.url; // De nieuwe Vercel Blob URL
+      finalImageUrl = blob.url;
     }
 
-    // 4. Database Opslag (UPSERT)
     const sql = neon(process.env.DATABASE_URL!);
 
     await sql`
       INSERT INTO dogs (user_id, name, breed, age, size, image_url, weight, gender, sterilized)
-      VALUES (
-        ${userId}, 
-        ${name}, 
-        ${breed}, 
-        ${age}, 
-        ${size}, 
-        ${finalImageUrl}, 
-        ${weight}, 
-        ${gender}, 
-        ${sterilized}
-      )
-      ON CONFLICT (user_id) 
-      DO UPDATE SET 
-        name = EXCLUDED.name,
-        breed = EXCLUDED.breed,
-        age = EXCLUDED.age,
-        size = EXCLUDED.size,
-        image_url = EXCLUDED.image_url,
-        weight = EXCLUDED.weight,
-        gender = EXCLUDED.gender,
-        sterilized = EXCLUDED.sterilized
+      VALUES (${userId}, ${name}, ${breed}, ${age}, ${size}, ${finalImageUrl}, ${weight}, ${gender}, ${sterilized})
     `;
 
-    // 5. Return succes + de URL (voor directe UI update)
     return NextResponse.json({ success: true, url: finalImageUrl });
   } catch (error: any) {
-    console.error("Final Dogs API Error:", error);
-    return NextResponse.json(
-      { error: "Fout bij verwerken: " + error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const {
+      dogId,
+      name,
+      breed,
+      age,
+      size,
+      weight,
+      gender,
+      sterilized,
+      image,
+      image_url,
+    } = body;
+
+    let finalImageUrl = image_url;
+
+    // Foto upload bij PATCH
+    if (image && image.startsWith("data:image")) {
+      const base64Data = image.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+      const blob = await put(`dogs/${userId}/${Date.now()}.jpg`, buffer, {
+        access: "public",
+        contentType: "image/jpeg",
+      });
+      finalImageUrl = blob.url;
+    }
+
+    const sql = neon(process.env.DATABASE_URL!);
+
+    // Gebruik dogId om de juiste rij te vinden
+    await sql`
+      UPDATE dogs 
+      SET 
+        name = ${name},
+        breed = ${breed},
+        age = ${age},
+        size = ${size},
+        weight = ${weight},
+        gender = ${gender},
+        sterilized = ${sterilized},
+        image_url = ${finalImageUrl}
+      WHERE id = ${dogId} AND user_id = ${userId}
+    `;
+
+    return NextResponse.json({ success: true, url: finalImageUrl });
+  } catch (error: any) {
+    console.error("PATCH Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-// Shadcn UI Imports
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 interface Result {
   summary?: string;
@@ -17,6 +18,12 @@ interface Result {
   details?: string;
   advice?: string;
   error?: string;
+}
+
+interface Dog {
+  id: string;
+  name: string;
+  image_url?: string;
 }
 
 const tools = [
@@ -118,11 +125,34 @@ const tools = [
   },
 ];
 
-export default function CheckPage() {
+function ScanContent() {
+  const searchParams = useSearchParams();
+  const dogId = searchParams.get("dogId");
+
+  const [dog, setDog] = useState<Dog | null>(null);
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Laad hondgegevens voor de header
+  useEffect(() => {
+    async function loadDog() {
+      if (!dogId) return;
+      try {
+        const res = await fetch(`/api/dogs?dogId=${dogId}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setDog(data.find((d) => String(d.id) === String(dogId)));
+        } else {
+          setDog(data);
+        }
+      } catch (err) {
+        console.error("Hond laden mislukt", err);
+      }
+    }
+    loadDog();
+  }, [dogId]);
 
   async function analyze(toolId: string, file: File) {
     setLoading((prev) => ({ ...prev, [toolId]: true }));
@@ -136,7 +166,11 @@ export default function CheckPage() {
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64, toolId }),
+          body: JSON.stringify({
+            image: base64,
+            toolId,
+            dogId: dogId ? parseInt(dogId) : null,
+          }),
         });
         const data = await res.json();
         setResults((prev) => ({ ...prev, [toolId]: data }));
@@ -155,15 +189,46 @@ export default function CheckPage() {
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12">
       <main className="max-w-7xl mx-auto">
-        <header className="mb-10">
-          <h1
-            className="text-4xl font-black  uppercase tracking-tighter mt-4"
-            style={{ fontFamily: "'Syne', sans-serif" }}>
-            Honden<span className="text-[#4FC3F7]">Scan</span>
-          </h1>
-          <p className="text-slate-500 text-lg">
-            AI-gestuurde analyse voor je hond.
-          </p>
+        <Link
+          href={`/dashboard?dogId=${dogId}`}
+          className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8 transition-colors">
+          <ArrowLeft size={14} /> Terug naar Dashboard
+        </Link>
+
+        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-3xl overflow-hidden border-4 border-white shadow-md bg-white shrink-0">
+              {dog?.image_url ? (
+                <img
+                  src={dog.image_url}
+                  alt={dog.name}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl">
+                  🐶
+                </div>
+              )}
+            </div>
+            <div>
+              <h1
+                className="text-3xl font-black uppercase tracking-tighter leading-none"
+                style={{ fontFamily: "'Syne', sans-serif" }}>
+                {dog?.name || "Honden"}
+                <span className="text-[#4FC3F7]">Scan</span>
+              </h1>
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mt-2">
+                AI-Analyse voor {dog?.name || "je hond"}
+              </p>
+            </div>
+          </div>
+          <Link href={`/dashboard/dossier?dogId=${dogId}`}>
+            <Button
+              variant="outline"
+              className="rounded-xl font-bold uppercase text-[10px] tracking-widest border-2 border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-all h-12 px-6">
+              📋 Bekijk Dossier van {dog?.name}
+            </Button>
+          </Link>
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -175,7 +240,7 @@ export default function CheckPage() {
             return (
               <Card
                 key={tool.id}
-                className="border-none shadow-sm ring-1 ring-slate-200 overflow-hidden hover:shadow-md transition-all">
+                className="border-none shadow-sm ring-1 ring-slate-200 overflow-hidden hover:shadow-md transition-all bg-white rounded-[2rem]">
                 <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner"
@@ -207,8 +272,8 @@ export default function CheckPage() {
                     )}
                     {isLoading && (
                       <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-[#1A1A2E] border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-[10px] font-black mt-2 uppercase">
+                        <Loader2 className="w-6 h-6 text-[#1A1A2E] animate-spin" />
+                        <span className="text-[10px] font-black mt-2 uppercase tracking-widest">
                           Scannen...
                         </span>
                       </div>
@@ -249,7 +314,7 @@ export default function CheckPage() {
                         <strong>Inzicht:</strong> {res.details}
                       </div>
                       {res.advice && (
-                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border-l-4 border-[#1A1A2E] text-[12px] text-slate-800">
+                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border-l-4 border-[#1A1A2E] text-[12px] text-slate-800 font-bold">
                           {res.advice}
                         </div>
                       )}
@@ -260,11 +325,18 @@ export default function CheckPage() {
             );
           })}
         </div>
-        <p className="mt-12 text-center text-[10px] text-slate-400 uppercase tracking-[0.2em] max-w-2xl mx-auto">
-          Let op: Deze check is een AI-ondersteuning en vervangt geen
-          professioneel dierenartsadvies.
-        </p>
       </main>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-20 text-center uppercase font-black">Laden...</div>
+      }>
+      <ScanContent />
+    </Suspense>
   );
 }

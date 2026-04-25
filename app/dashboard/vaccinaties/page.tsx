@@ -2,28 +2,37 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Syringe,
   Plus,
   Trash2,
   ArrowLeft,
-  Calendar as CalendarIcon,
   ShieldCheck,
   AlertTriangle,
-  FileText,
   Loader2,
 } from "lucide-react";
 
 interface Vaccinatie {
   id: string;
   type: string;
-  datum_gegeven: string; // Let op: underscore voor database matching
+  datum_gegeven: string;
   datum_verloop: string;
   dierenarts: string;
 }
 
+interface Dog {
+  id: string;
+  name: string;
+  image_url?: string;
+}
+
 export default function VaccinatiesPage() {
+  const searchParams = useSearchParams();
+  const dogIdFromUrl = searchParams.get("dogId");
+
   const [vaccinaties, setVaccinaties] = useState<Vaccinatie[]>([]);
+  const [dog, setDog] = useState<Dog | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -34,14 +43,27 @@ export default function VaccinatiesPage() {
     dierenarts: "",
   });
 
-  // 1. DATA OPHALEN UIT NEON BIJ LADEN
+  // 1. DATA OPHALEN (Hond + Vaccinaties)
   useEffect(() => {
-    async function laadVaccinaties() {
+    async function loadData() {
+      if (!dogIdFromUrl) return;
+
+      setLoading(true);
       try {
-        const res = await fetch("/api/vaccinaties");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setVaccinaties(data);
+        const [vacRes, dogRes] = await Promise.all([
+          fetch(`/api/vaccinaties?dogId=${dogIdFromUrl}&t=${Date.now()}`),
+          fetch(`/api/dogs?dogId=${dogIdFromUrl}`),
+        ]);
+
+        const vacData = await vacRes.json();
+        const dogData = await dogRes.json();
+
+        if (Array.isArray(vacData)) setVaccinaties(vacData);
+
+        if (Array.isArray(dogData)) {
+          setDog(dogData.find((d) => String(d.id) === String(dogIdFromUrl)));
+        } else {
+          setDog(dogData);
         }
       } catch (err) {
         console.error("Fout bij laden:", err);
@@ -49,24 +71,27 @@ export default function VaccinatiesPage() {
         setLoading(false);
       }
     }
-    laadVaccinaties();
-  }, []);
+    loadData();
+  }, [dogIdFromUrl]);
 
-  // 2. DATA SCHRIJVEN NAAR NEON
+  // 2. DATA SCHRIJVEN
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dogIdFromUrl) return alert("Geen hond geselecteerd.");
 
     try {
       const res = await fetch("/api/vaccinaties", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newVac),
+        body: JSON.stringify({
+          ...newVac,
+          dog_id: dogIdFromUrl,
+        }),
       });
 
       if (res.ok) {
         const opgeslagenVac = await res.json();
-        // Update lokale state met de data uit de database (inclusief het nieuwe ID)
-        setVaccinaties((prev) => [...prev, opgeslagenVac]);
+        setVaccinaties((prev) => [opgeslagenVac, ...prev]);
         setIsAdding(false);
         setNewVac({
           type: "",
@@ -77,14 +102,11 @@ export default function VaccinatiesPage() {
       }
     } catch (err) {
       console.error("Opslaan mislukt:", err);
-      alert("Er ging iets mis bij het opslaan.");
     }
   };
 
-  // 3. VERWIJDEREN UIT NEON
   const handleDelete = async (id: string) => {
     if (!confirm("Zeker weten?")) return;
-
     try {
       const res = await fetch(`/api/vaccinaties/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -95,38 +117,53 @@ export default function VaccinatiesPage() {
     }
   };
 
-  const isVerlopen = (datum: string) => {
-    return new Date(datum) < new Date();
-  };
+  const isVerlopen = (datum: string) => new Date(datum) < new Date();
 
   return (
     <div className="min-h-screen bg-white font-sans text-[#1A1A2E] antialiased p-6 md:p-12">
       <div className="w-full max-w-xl text-left ml-0">
         <Link
-          href="/dashboard"
+          href={`/dashboard?dogId=${dogIdFromUrl}`}
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8 transition-colors">
           <ArrowLeft size={14} /> Terug naar Dashboard
         </Link>
 
-        <header className="mb-10">
-          <h1 className="text-2xl font-black text-[#1A1A2E] uppercase tracking-tight italic">
-            Vaccinaties{" "}
-            <span className="text-[#4FC3F7] not-italic px-2">/</span> Paspoort
-          </h1>
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
-            Beheer Luna's preventieve zorg en immuniteit
-          </p>
+        {/* --- DYNAMISCHE HEADER --- */}
+        <header className="mb-10 flex items-center gap-5">
+          <div className="h-16 w-16 md:h-20 md:w-20 rounded-3xl overflow-hidden border-4 border-slate-50 shadow-sm bg-slate-100 shrink-0">
+            {dog?.image_url ? (
+              <img
+                src={dog.image_url}
+                alt={dog.name}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl">
+                🐶
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-[#1A1A2E] uppercase tracking-tight italic leading-none">
+              {dog?.name || "Laden..."}{" "}
+              <span className="text-[#4FC3F7] not-italic px-1">/</span>{" "}
+              Vaccinaties
+            </h1>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">
+              Gezondheidsstatus & Paspoort van {dog?.name || "je hond"}
+            </p>
+          </div>
         </header>
 
         {loading ? (
-          <div className="py-10 flex justify-center">
-            <Loader2 className="animate-spin text-[#4FC3F7]" />
+          <div className="py-10 flex justify-center text-[#4FC3F7]">
+            <Loader2 className="animate-spin" />
           </div>
         ) : (
           <div className="space-y-4 mb-10">
             {vaccinaties.length === 0 && !isAdding && (
               <p className="text-slate-400 italic text-sm py-10">
-                Nog geen vaccinaties geregistreerd.
+                Geen vaccinaties gevonden voor {dog?.name}.
               </p>
             )}
             {vaccinaties.map((vac) => {
@@ -134,14 +171,10 @@ export default function VaccinatiesPage() {
               return (
                 <div
                   key={vac.id}
-                  className={`p-6 border rounded-2xl flex items-center justify-between transition-all ${
-                    verlopen
-                      ? "bg-red-50 border-red-100"
-                      : "bg-slate-50 border-slate-100"
-                  }`}>
+                  className={`p-6 border rounded-2xl flex items-center justify-between ${verlopen ? "bg-red-50 border-red-100" : "bg-slate-50 border-slate-100"}`}>
                   <div className="flex items-start gap-4">
                     <div
-                      className={`mt-1 ${verlopen ? "text-red-500" : "text-green-500"}`}>
+                      className={verlopen ? "text-red-500" : "text-green-500"}>
                       {verlopen ? (
                         <AlertTriangle size={20} />
                       ) : (
@@ -156,15 +189,14 @@ export default function VaccinatiesPage() {
                         Geldig tot:{" "}
                         <span
                           className={
-                            verlopen ? "text-red-600" : "text-[#1A1A2E]"
+                            verlopen
+                              ? "text-red-600 font-black"
+                              : "text-[#1A1A2E]"
                           }>
                           {new Date(vac.datum_verloop).toLocaleDateString(
                             "nl-NL",
                           )}
                         </span>
-                      </p>
-                      <p className="text-[9px] text-slate-400 mt-1 uppercase">
-                        Arts: {vac.dierenarts || "Onbekend"}
                       </p>
                     </div>
                   </div>
@@ -183,28 +215,27 @@ export default function VaccinatiesPage() {
           <button
             onClick={() => setIsAdding(true)}
             className="w-full py-5 border-2 border-[#4FC3F7] text-[#4FC3F7] font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#4FC3F7] hover:text-white transition-all flex items-center justify-center gap-2">
-            <Plus size={18} /> Nieuwe Vaccinatie
+            <Plus size={18} /> Nieuwe Vaccinatie Toevoegen
           </button>
         ) : (
           <form
             onSubmit={handleAdd}
-            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-5 animate-in slide-in-from-bottom-2">
+            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                 Type Vaccinatie
               </label>
               <input
                 required
-                placeholder="bijv. Cocktail of Parvo"
                 value={newVac.type}
                 onChange={(e) => setNewVac({ ...newVac, type: e.target.value })}
-                className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border border-transparent focus:border-[#4FC3F7]"
+                placeholder="bijv. Rabiës"
+                className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none"
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                <label className="text-[10px] font-black uppercase text-slate-400">
                   Datum Gegeven
                 </label>
                 <input
@@ -214,11 +245,11 @@ export default function VaccinatiesPage() {
                   onChange={(e) =>
                     setNewVac({ ...newVac, datum_gegeven: e.target.value })
                   }
-                  className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none"
+                  className="p-4 bg-slate-50 rounded-xl font-bold outline-none"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                <label className="text-[10px] font-black uppercase text-slate-400">
                   Geldig tot
                 </label>
                 <input
@@ -228,30 +259,28 @@ export default function VaccinatiesPage() {
                   onChange={(e) =>
                     setNewVac({ ...newVac, datum_verloop: e.target.value })
                   }
-                  className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none"
+                  className="p-4 bg-slate-50 rounded-xl font-bold outline-none"
                 />
               </div>
             </div>
-
             <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+              <label className="text-[10px] font-black uppercase text-slate-400">
                 Dierenarts / Kliniek
               </label>
               <input
-                placeholder="Naam van de arts"
+                placeholder="Naam van de kliniek"
                 value={newVac.dierenarts}
                 onChange={(e) =>
                   setNewVac({ ...newVac, dierenarts: e.target.value })
                 }
-                className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border border-transparent focus:border-[#4FC3F7]"
+                className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none"
               />
             </div>
-
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
                 className="flex-1 py-4 bg-[#1A1A2E] text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-[#4FC3F7] transition-all">
-                Opslaan in Dossier
+                Opslaan
               </button>
               <button
                 type="button"
@@ -263,7 +292,6 @@ export default function VaccinatiesPage() {
           </form>
         )}
       </div>
-      <div className="h-24" />
     </div>
   );
 }

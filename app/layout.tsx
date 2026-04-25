@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PetCheck.ai - Slimme zorg voor je hond",
+  title: "Doggyscan.nl - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
   manifest: "/manifest.json",
 };

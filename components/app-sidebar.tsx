@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -34,7 +34,11 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { setOpenMobile } = useSidebar();
+
+  // De cruciale stap: pak het ID van de hond uit de URL
+  const dogId = searchParams.get("dogId");
 
   return (
     <Sidebar
@@ -44,26 +48,30 @@ export function AppSidebar() {
 
       <SidebarContent className="p-4 bg-white relative flex flex-col h-full">
         <SidebarMenu className="gap-2 flex-1">
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.url}
-                className={`h-12 w-full justify-start rounded-xl px-4 ${
-                  pathname === item.url
-                    ? "bg-blue-50 text-blue-600 font-bold"
-                    : "text-[#1A1A2E]"
-                }`}>
-                <Link href={item.url} onClick={() => setOpenMobile(false)}>
-                  <item.icon size={22} />
-                  <span className="font-bold">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            // FIX: Als we dogId hebben (bijv. 21), maken we van "/dashboard/dossier" -> "/dashboard/dossier?dogId=21"
+            const finalUrl = dogId ? `${item.url}?dogId=${dogId}` : item.url;
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.url}
+                  className={`h-12 w-full justify-start rounded-xl px-4 ${
+                    pathname === item.url
+                      ? "bg-blue-50 text-blue-600 font-bold"
+                      : "text-[#1A1A2E]"
+                  }`}>
+                  <Link href={finalUrl} onClick={() => setOpenMobile(false)}>
+                    <item.icon size={22} />
+                    <span className="font-bold">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
 
-        {/* HET ZWARTE, GROTERE EN DIKKERE KRUISJE RECHTSONDER */}
         <button
           onClick={() => setOpenMobile(false)}
           className="lg:hidden absolute bottom-6 right-6 p-2 text-black hover:opacity-70 transition-opacity"

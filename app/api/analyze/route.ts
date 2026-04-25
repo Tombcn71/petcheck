@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     if (!userId)
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-    // 2. Input check
-    const { image, toolId } = await req.json();
+    // 2. Input check (NU MET dogId)
+    const { image, toolId, dogId } = await req.json();
     if (!image)
       return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
 
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const instruction =
       SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
 
-    // 3. Blob Upload (Foto opslaan)
+    // 3. Blob Upload
     const blob = await put(`scans/${userId}/${Date.now()}.jpg`, buffer, {
       access: "public",
       contentType: "image/jpeg",
@@ -74,30 +74,26 @@ export async function POST(req: Request) {
     const rawText = result.text;
     if (!rawText) throw new Error("Lege response van AI");
 
-    // VEILIGE PARSING: Verwijder Markdown blokken en witruimte
     const cleanJsonString = rawText
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
     const aiData = JSON.parse(cleanJsonString);
 
-    // 5. Database Opslag
+    // 5. Database Opslag (NU MET dog_id KOLOM)
     const sql = neon(process.env.DATABASE_URL!);
     try {
       await sql`
-        INSERT INTO scans (user_id, tool_id, image_url, summary, is_ok, details, advice) 
-        VALUES (${userId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
+        INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice) 
+        VALUES (${userId}, ${dogId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
       `;
     } catch (dbError) {
-      console.error("DB Save Skip (Local):", dbError);
+      console.error("DB Save Error:", dbError);
     }
 
     return NextResponse.json(aiData);
   } catch (error: any) {
     console.error("Final API Error:", error);
-    return NextResponse.json(
-      { error: "Fout bij verwerken: " + error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Fout bij verwerken" }, { status: 500 });
   }
 }

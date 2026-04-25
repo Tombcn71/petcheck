@@ -13,12 +13,11 @@ export async function POST(request: Request) {
     const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
 
-    // Controleer of de minimale data aanwezig is
     if (!body.name) {
       return NextResponse.json({ error: "Naam is verplicht" }, { status: 400 });
     }
 
-    // We voeren de INSERT uit met ON CONFLICT voor het geval de user_id al bestaat
+    // GEEN 'ON CONFLICT'. Elke hond krijgt een eigen rij.
     const result = await sql`
       INSERT INTO dogs (
         user_id, 
@@ -42,28 +41,18 @@ export async function POST(request: Request) {
         ${body.sterilized || ""}, 
         ${body.image_url || null}
       )
-      ON CONFLICT (user_id) 
-      DO UPDATE SET 
-        name = EXCLUDED.name,
-        breed = EXCLUDED.breed,
-        age = EXCLUDED.age,
-        size = EXCLUDED.size,
-        weight = EXCLUDED.weight,
-        gender = EXCLUDED.gender,
-        sterilized = EXCLUDED.sterilized,
-        image_url = EXCLUDED.image_url
       RETURNING *
     `;
 
     return NextResponse.json({
       success: true,
-      message: "Onboarding succesvol afgerond",
-      dog: result[0],
+      message: "Hond succesvol toegevoegd",
+      dog: result[0], // Hier zit het NIEUWE UNIEKE ID in!
     });
   } catch (error) {
     console.error("Onboarding POST Error:", error);
     return NextResponse.json(
-      { error: "Kon de onboarding data niet opslaan" },
+      { error: "Kon de hond niet opslaan" },
       { status: 500 },
     );
   }
