@@ -2,12 +2,12 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Doggyscan.nl - Slimme zorg voor je hond",
+    name: "Doggyscan.nl",
     short_name: "Doggyscan",
     description: "AI-gestuurde gezondheidscheck voor honden",
     start_url: "/",
     display: "standalone",
-    background_color: "#F8FAFC",
+    background_color: "#ffffff",
     theme_color: "#4FC3F7",
     icons: [
       {

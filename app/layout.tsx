@@ -27,7 +27,25 @@ export const metadata: Metadata = {
     title: "Doggyscan",
   },
   icons: {
-    apple: "/icons/icon-192x192.png",
+    icon: [
+      {
+        url: "/icons/icon-192x192.png?v=1",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icons/icon-512x512.png?v=1",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/icons/icon-192x192.png?v=1",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
   },
 };
 
