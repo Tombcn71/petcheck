@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+
 const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
@@ -6,6 +7,11 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 });
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  experimental: {
+    // @ts-ignore - Dit lost de Turbopack error in Vercel op zonder TS fouten
+    turbopack: {},
+  },
+};
 
-export default withPWA(nextConfig);
+module.exports = withPWA(nextConfig);
