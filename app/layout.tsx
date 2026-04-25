@@ -22,8 +22,23 @@ export const metadata: Metadata = {
   title: "Doggyscan.nl - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Doggyscan.nl",
+  },
+  icons: {
+    apple: "/icons/icon-192x192.png",
+  },
+  openGraph: {
+    title: "Doggyscan.nl - Slimme zorg voor je hond",
+    description: "AI-gestuurde gezondheidscheck voor honden",
+    url: "https://doggyscan.nl",
+    siteName: "Doggyscan.nl",
+    locale: "nl_NL",
+    type: "website",
+  },
 };
-
 export const viewport: Viewport = {
   themeColor: "#4FC3F7",
   width: "device-width",
