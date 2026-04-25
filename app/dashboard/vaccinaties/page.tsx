@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  Syringe,
   Plus,
   Trash2,
   ArrowLeft,
@@ -13,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 
+// --- Interfaces ---
 interface Vaccinatie {
   id: string;
   type: string;
@@ -27,7 +27,22 @@ interface Dog {
   image_url?: string;
 }
 
+// --- HOOFD EXPORT (De Wrapper voor Next.js Build) ---
 export default function VaccinatiesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="animate-spin text-[#4FC3F7] h-10 w-10" />
+        </div>
+      }>
+      <VaccinatiesContent />
+    </Suspense>
+  );
+}
+
+// --- DE WERKELIJKE CONTENT COMPONENT ---
+function VaccinatiesContent() {
   const searchParams = useSearchParams();
   const dogIdFromUrl = searchParams.get("dogId");
 
@@ -43,10 +58,12 @@ export default function VaccinatiesPage() {
     dierenarts: "",
   });
 
-  // 1. DATA OPHALEN (Hond + Vaccinaties)
   useEffect(() => {
     async function loadData() {
-      if (!dogIdFromUrl) return;
+      if (!dogIdFromUrl) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       try {
@@ -61,7 +78,9 @@ export default function VaccinatiesPage() {
         if (Array.isArray(vacData)) setVaccinaties(vacData);
 
         if (Array.isArray(dogData)) {
-          setDog(dogData.find((d) => String(d.id) === String(dogIdFromUrl)));
+          setDog(
+            dogData.find((d) => String(d.id) === String(dogIdFromUrl)) || null,
+          );
         } else {
           setDog(dogData);
         }
@@ -74,7 +93,6 @@ export default function VaccinatiesPage() {
     loadData();
   }, [dogIdFromUrl]);
 
-  // 2. DATA SCHRIJVEN
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dogIdFromUrl) return alert("Geen hond geselecteerd.");
@@ -128,7 +146,6 @@ export default function VaccinatiesPage() {
           <ArrowLeft size={14} /> Terug naar Dashboard
         </Link>
 
-        {/* --- DYNAMISCHE HEADER --- */}
         <header className="mb-10 flex items-center gap-5">
           <div className="h-16 w-16 md:h-20 md:w-20 rounded-3xl overflow-hidden border-4 border-slate-50 shadow-sm bg-slate-100 shrink-0">
             {dog?.image_url ? (
@@ -220,7 +237,7 @@ export default function VaccinatiesPage() {
         ) : (
           <form
             onSubmit={handleAdd}
-            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-5 animate-in zoom-in-95 duration-200">
+            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-5">
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                 Type Vaccinatie

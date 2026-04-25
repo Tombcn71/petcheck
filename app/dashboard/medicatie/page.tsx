@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Pill, Plus, Trash2, ArrowLeft, Loader2, Info } from "lucide-react";
+import { Pill, Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 
+// --- Types ---
 interface Medicijn {
   id: string;
   naam: string;
@@ -19,12 +20,27 @@ interface Dog {
   image_url?: string;
 }
 
+// --- HOOFD EXPORT (Met de vereiste Suspense wrapper voor Vercel) ---
 export default function MedicijnenPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="animate-spin text-[#4FC3F7] h-10 w-10" />
+        </div>
+      }>
+      <MedicatieContent />
+    </Suspense>
+  );
+}
+
+// --- DE WERKELIJKE CONTENT COMPONENT ---
+function MedicatieContent() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get("dogId");
 
   const [medicijnen, setMedicijnen] = useState<Medicijn[]>([]);
-  const [dog, setDog] = useState<Dog | null>(null); // Staat voor de hond info
+  const [dog, setDog] = useState<Dog | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -35,13 +51,14 @@ export default function MedicijnenPage() {
     notitie: "",
   });
 
-  // 1. Laad zowel de hond als de medicijnen
   useEffect(() => {
     async function loadData() {
-      if (!dogId) return;
+      if (!dogId) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
-        // Haal hond info en medicijnen tegelijk op
         const [medRes, dogRes] = await Promise.all([
           fetch(`/api/medicatie?dogId=${dogId}`),
           fetch(`/api/dogs?dogId=${dogId}`),
@@ -52,9 +69,8 @@ export default function MedicijnenPage() {
 
         if (Array.isArray(medData)) setMedicijnen(medData);
 
-        // De dog API geeft vaak een array terug, pak de juiste
         if (Array.isArray(dogData)) {
-          setDog(dogData.find((d) => String(d.id) === String(dogId)));
+          setDog(dogData.find((d) => String(d.id) === String(dogId)) || null);
         } else {
           setDog(dogData);
         }
@@ -113,7 +129,6 @@ export default function MedicijnenPage() {
           <ArrowLeft size={14} /> Terug naar Dashboard
         </Link>
 
-        {/* --- NIEUWE DYNAMISCHE HEADER MET FOTO EN NAAM --- */}
         <header className="mb-10 flex items-center gap-5">
           <div className="h-16 w-16 md:h-20 md:w-20 rounded-3xl overflow-hidden border-4 border-slate-50 shadow-sm bg-slate-100 shrink-0">
             {dog?.image_url ? (
@@ -139,7 +154,6 @@ export default function MedicijnenPage() {
             </p>
           </div>
         </header>
-        {/* --- EINDE NIEUWE HEADER --- */}
 
         <div className="space-y-4 mb-10">
           {loading ? (
@@ -157,7 +171,7 @@ export default function MedicijnenPage() {
             medicijnen.map((med) => (
               <div
                 key={med.id}
-                className="p-6 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between animate-in fade-in duration-300">
+                className="p-6 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between">
                 <div>
                   <h3 className="font-black uppercase text-sm text-[#1A1A2E]">
                     {med.naam}
@@ -190,7 +204,7 @@ export default function MedicijnenPage() {
         ) : (
           <form
             onSubmit={handleAddMedicijn}
-            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-6 animate-in zoom-in-95 duration-200">
+            className="p-8 bg-white border-2 border-[#4FC3F7] rounded-[2.5rem] space-y-6">
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black uppercase text-slate-400">
                 Naam Medicijn
@@ -203,7 +217,6 @@ export default function MedicijnenPage() {
                 className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-black uppercase text-slate-400">
@@ -236,7 +249,6 @@ export default function MedicijnenPage() {
                 </select>
               </div>
             </div>
-
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black uppercase text-slate-400">
                 Notitie / Instructie
@@ -250,7 +262,6 @@ export default function MedicijnenPage() {
                 className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none h-20 resize-none"
               />
             </div>
-
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
