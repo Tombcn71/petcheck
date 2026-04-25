@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google"; // Vervang Geist door Jakarta
+import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { nlNL } from "@clerk/localizations"; // Importeer Nederlands
+import { nlNL } from "@clerk/localizations";
+import { InstallPrompt } from "@/components/InstallPrompt"; // Importeer de installatie-vraag
 
-// 1. Laad Plus Jakarta Sans voor de serieuze 'PetCheck' vibe
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"], // Genoeg variatie voor dikke koppen
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -21,24 +21,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Doggyscan.nl - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
-  manifest: "/manifest.json",
+  // manifest: "/manifest.json", // Dit mag weg als je app/manifest.ts gebruikt
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Doggyscan.nl",
+    title: "Doggyscan",
   },
   icons: {
     apple: "/icons/icon-192x192.png",
   },
-  openGraph: {
-    title: "Doggyscan.nl - Slimme zorg voor je hond",
-    description: "AI-gestuurde gezondheidscheck voor honden",
-    url: "https://doggyscan.nl",
-    siteName: "Doggyscan.nl",
-    locale: "nl_NL",
-    type: "website",
-  },
 };
+
 export const viewport: Viewport = {
   themeColor: "#4FC3F7",
   width: "device-width",
@@ -56,11 +49,14 @@ export default function RootLayout({
     <ClerkProvider localization={nlNL}>
       <html lang="nl" className="scroll-smooth">
         <body
-          /* 2. Voeg de nieuwe font-variable toe en zet font-jakarta als standaard */
           className={`${jakarta.variable} ${geistMono.variable} font-jakarta antialiased`}>
           <TooltipProvider delayDuration={0}>
             <Navbar />
-            {children}
+            <main>{children}</main>
+            {/* Dit is de component die vraagt om te installeren 
+               gebaseerd op de documentatie die je stuurde 
+            */}
+            <InstallPrompt />
           </TooltipProvider>
         </body>
       </html>
