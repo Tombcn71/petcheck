@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ import {
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RapportPDF } from "@/components/RapportPDF";
 
-// Interfaces
+// --- Interfaces ---
 interface DossierItem {
   id: string;
   tool_id: string;
@@ -60,7 +60,22 @@ const dossierVertalingen: Record<string, string> = {
   ears: "Oren",
 };
 
+// --- HOOFD EXPORT (De Wrapper) ---
 export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="animate-spin text-[#4FC3F7] h-10 w-10" />
+        </div>
+      }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+// --- DE WERKELIJKE DASHBOARD CONTENT ---
+function DashboardContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -221,7 +236,6 @@ export default function DashboardPage() {
             </button>
           ))}
 
-          {/* VOEG HOND TOE KNOP - VERDWIJNT BIJ 3 OF MEER HONDEN */}
           {allDogs.length < 3 && (
             <Link
               href="/onboarding"
@@ -306,7 +320,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* REST VAN HET DASHBOARD BLIJFT GELIJK... */}
         {!loading && (
           <section className="mb-10 text-left">
             {dossierAlerts.length > 0 ? (
