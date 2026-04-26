@@ -1,6 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Geen PWA plugins meer hier! Next.js doet het nu zelf.
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self' https://clerk.doggyscan.nl;", // Clerk toegevoegd aan CSP
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
