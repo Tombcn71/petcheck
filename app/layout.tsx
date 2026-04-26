@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Doggyscan.nl - Slimme zorg voor je hond",
   description: "AI-gestuurde gezondheidscheck voor honden",
-  manifest: "/manifest.webmanifest", // Expliciet toegevoegd voor maximale browser support
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -72,23 +72,6 @@ export default function RootLayout({
             <Navbar />
             <main>{children}</main>
             <InstallPrompt />
-
-            {/* Service Worker Registratie Script */}
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', function() {
-                      navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                        console.log('Doggyscan SW geregistreerd');
-                      }).catch(function(err) {
-                        console.log('SW registratie mislukt:', err);
-                      });
-                    });
-                  }
-                `,
-              }}
-            />
           </TooltipProvider>
         </body>
       </html>
