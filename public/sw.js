@@ -1,8 +1,13 @@
-self.addEventListener("install", () => {
+self.addEventListener("install", (event) => {
   console.log("Doggyscan Service Worker geïnstalleerd");
+  self.skipWaiting(); // Dwing de nieuwe SW om direct de oude te vervangen
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Doggyscan Service Worker geactiveerd");
 });
 
 self.addEventListener("fetch", (event) => {
-  // Dit is nodig om de app "installeerbaar" te maken
+  // Nodig voor de 'install' prompt op Android
   event.respondWith(fetch(event.request));
 });
