@@ -2,6 +2,7 @@
 import { useState, useRef, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs"; // Toegevoegd
 import {
   Card,
   CardContent,
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Lock } from "lucide-react"; // Lock toegevoegd
 
 interface Result {
   summary?: string;
@@ -126,6 +127,7 @@ const tools = [
 ];
 
 function ScanContent() {
+  const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
   const dogId = searchParams.get("dogId");
 
@@ -135,7 +137,14 @@ function ScanContent() {
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Laad hondgegevens voor de header
+  // Trial Logica
+  const isPro = user?.publicMetadata?.role === "pro";
+  const signupDate = user?.createdAt
+    ? new Date(user.createdAt).getTime()
+    : Date.now();
+  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+  const trialExpired = !isPro && Date.now() - signupDate > sevenDaysInMs;
+
   useEffect(() => {
     async function loadDog() {
       if (!dogId) return;
@@ -155,6 +164,8 @@ function ScanContent() {
   }, [dogId]);
 
   async function analyze(toolId: string, file: File) {
+    if (trialExpired) return; // Extra check
+
     setLoading((prev) => ({ ...prev, [toolId]: true }));
     const reader = new FileReader();
 
@@ -186,9 +197,40 @@ function ScanContent() {
     reader.readAsDataURL(file);
   }
 
+  if (!isLoaded)
+    return (
+      <div className="p-20 text-center uppercase font-black">Laden...</div>
+    );
+
   return (
-    <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12">
-      <main className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
+      {/* OVERLAY BIJ VERLOPEN TRIAL */}
+      {trialExpired && (
+        <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-md flex items-center justify-center p-4">
+          <Card className="max-w-md w-full border-4 border-[#01579B] rounded-[2.5rem] shadow-2xl p-8 text-center animate-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-[#F0F9FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Lock className="text-[#01579B]" size={32} />
+            </div>
+            <h2
+              className="text-3xl font-black text-[#01579B] uppercase mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}>
+              Trial <span className="text-[#4FC3F7]">Voorbij</span>
+            </h2>
+            <p className="font-bold text-slate-500 mb-8 leading-relaxed">
+              Je gratis week Doggyscan is afgelopen. Kies een plan om onbeperkt
+              scans te blijven maken voor {dog?.name || "je hond"}.
+            </p>
+            <Button
+              asChild
+              className="w-full h-16 rounded-2xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase tracking-widest transition-all">
+              <Link href="/#pricing">Bekijk Plannen</Link>
+            </Button>
+          </Card>
+        </div>
+      )}
+
+      <main
+        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm grayscale-[0.5] pointer-events-none" : ""}`}>
         <Link
           href={`/dashboard?dogId=${dogId}`}
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8 transition-colors">
@@ -225,7 +267,7 @@ function ScanContent() {
           <Link href={`/dashboard/dossier?dogId=${dogId}`}>
             <Button
               variant="outline"
-              className="rounded-xl font-bold uppercase text-[10px] tracking-widest border-2 border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-all h-12 px-6">
+              className="rounded-xl font-bold uppercase text-[10px] tracking-widest border-2 border-slate-200 bg-white hover:bg-slate-50 shadow-sm h-12 px-6">
               📋 Bekijk Dossier van {dog?.name}
             </Button>
           </Link>
@@ -258,7 +300,7 @@ function ScanContent() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  <div className="relative aspect-[16/10] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center group">
+                  <div className="relative aspect-[16/10] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center">
                     {preview ? (
                       <img
                         src={preview}
@@ -296,12 +338,14 @@ function ScanContent() {
                     className="w-full h-11 rounded-xl font-bold uppercase text-[11px] tracking-widest transition-all active:scale-95"
                     style={{ background: tool.bg, color: tool.color }}
                     onClick={() => fileRefs.current[tool.id]?.click()}
-                    disabled={isLoading}>
+                    disabled={isLoading || trialExpired}>
                     {isLoading
                       ? "Bezig..."
-                      : preview
-                        ? "Nieuwe Foto"
-                        : "Start Analyse"}
+                      : trialExpired
+                        ? "Trial verlopen"
+                        : preview
+                          ? "Nieuwe Foto"
+                          : "Start Analyse"}
                   </Button>
 
                   {res && !isLoading && !res.error && (

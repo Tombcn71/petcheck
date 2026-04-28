@@ -1,0 +1,19 @@
+// lib/subscription.ts
+export const TRIAL_DAYS = 0.01 // Zet op 7 voor productie
+
+export function getTrialStatus(createdAt: Date) {
+  const now = new Date();
+  const trialDuration = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  const elapsed = now.getTime() - createdAt.getTime();
+  const remainingMs = trialDuration - elapsed;
+
+  // Bereken percentage voor de progress bar
+  const progress = Math.max(0, Math.min(100, (elapsed / trialDuration) * 100));
+
+  return {
+    isActive: remainingMs > 0,
+    daysRemaining: Math.ceil(remainingMs / (24 * 60 * 60 * 1000)),
+    progress: Math.round(progress), // Voor de bar
+    isExpired: remainingMs <= 0,
+  };
+}
