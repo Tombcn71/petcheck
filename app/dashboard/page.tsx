@@ -562,7 +562,7 @@ function DashboardContent() {
           <Link
             href={`/dashboard/dossier?dogId=${dogIdFromUrl}`}
             className="flex-[2] flex items-center justify-center p-4 bg-[#111827] text-white rounded-xl font-bold hover:bg-[#4FC3F7]">
-            Open volledig dossier
+            Open dossier
           </Link>
           <button className="flex-1 flex items-center justify-center p-4 bg-white border-2 border-[#111827] text-[#111827] rounded-xl font-bold hover:bg-red-50">
             <Phone size={18} className="mr-2" /> Contact
