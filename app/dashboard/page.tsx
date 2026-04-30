@@ -26,7 +26,7 @@ import { Progress } from "@/components/ui/progress";
 
 // --- Trial Logica Functie ---
 function getTrialStatus(createdAt: string | Date | number) {
-  const TRIAL_DAYS = 1;
+  const TRIAL_DAYS = 7;
   const start = new Date(createdAt).getTime();
   const duration = TRIAL_DAYS * 24 * 60 * 60 * 1000;
   const now = Date.now();
