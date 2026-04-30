@@ -38,6 +38,7 @@ export default function Navbar() {
             <span className="font-extrabold text-[#1A1A2E] tracking-tighter text-lg uppercase">
               Doggy<span className="text-[#4FC3F7]">scan.nl</span>
             </span>
+            betaversie
           </Link>
 
           {/* DESKTOP NAV: Alleen op homepage */}
@@ -60,7 +61,6 @@ export default function Navbar() {
               </a>
             </nav>
           )}
-
           <div className="flex items-center gap-3">
             {/* AUTH SECTIE DESKTOP */}
             <Show when="signed-out">
