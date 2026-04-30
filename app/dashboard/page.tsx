@@ -110,11 +110,8 @@ function DashboardContent() {
     details: any[];
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  // Modal State voor de 2 plannen
   const [showPricing, setShowPricing] = useState(false);
 
-  // Trial status berekenen
   const isPro = user?.publicMetadata?.role === "pro";
   const trial = user?.createdAt
     ? getTrialStatus(user.createdAt)
@@ -122,74 +119,70 @@ function DashboardContent() {
 
   const dogName = dog?.name || "Laden...";
 
+  // MASTER FETCH: Haalt alles in één keer op
   useEffect(() => {
-    async function laadHondenLijst() {
-      try {
-        const res = await fetch("/api/dogs?t=" + Date.now());
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) setAllDogs(data);
-        }
-      } catch (e) {
-        console.error("Fout laden hondenlijst:", e);
-      }
-    }
-    laadHondenLijst();
-  }, []);
-
-  useEffect(() => {
-    async function laadDashboardData() {
+    async function initDashboard() {
+      if (!isLoaded) return;
       setLoading(true);
+
       try {
-        const query = dogIdFromUrl ? `?dogId=${dogIdFromUrl}` : "";
-        const t = `&t=${Date.now()}`;
-        const [dogRes, scansRes, vacRes, medRes] = await Promise.all([
-          fetch(`/api/dogs${query}${t}`),
-          fetch(`/api/scans${query}${t}`),
-          fetch(`/api/vaccinaties${query}${t}`),
-          fetch(`/api/medicatie${query}${t}`),
-        ]);
+        const t = `?t=${Date.now()}`;
+        const fetchOptions = { cache: "no-store" as RequestCache };
 
-        const safeJson = async (res: Response) => {
-          if (!res.ok) return null;
-          const contentType = res.headers.get("content-type");
-          return contentType?.includes("application/json")
-            ? await res.json()
-            : null;
-        };
+        const dogsRes = await fetch("/api/dogs" + t, fetchOptions);
+        const hondenData = await dogsRes.json();
 
-        const dogData = await safeJson(dogRes);
-        const scansData = await safeJson(scansRes);
-        const vacData = await safeJson(vacRes);
-        const medData = await safeJson(medRes);
-
-        if (dogData) {
-          const geselecteerdeHond = Array.isArray(dogData)
-            ? dogIdFromUrl
-              ? dogData.find((d) => String(d.id) === String(dogIdFromUrl))
-              : dogData[0]
-            : dogData;
-          setDog(geselecteerdeHond);
+        if (!Array.isArray(hondenData) || hondenData.length === 0) {
+          setLoading(false);
+          return;
         }
 
-        if (Array.isArray(scansData)) {
-          setDossierAlerts(
-            scansData.filter(
-              (item: DossierItem) =>
-                item.is_ok === false || String(item.is_ok) === "false",
+        setAllDogs(hondenData);
+
+        const actieveHond = dogIdFromUrl
+          ? hondenData.find((d: any) => String(d.id) === String(dogIdFromUrl))
+          : hondenData[0];
+
+        if (actieveHond) {
+          setDog({ ...actieveHond });
+
+          const idToFetch = actieveHond.id;
+          const [scansRes, vacRes, medRes] = await Promise.all([
+            fetch(
+              `/api/scans?dogId=${idToFetch}&t=${Date.now()}`,
+              fetchOptions,
             ),
+            fetch(
+              `/api/vaccinaties?dogId=${idToFetch}&t=${Date.now()}`,
+              fetchOptions,
+            ),
+            fetch(
+              `/api/medicatie?dogId=${idToFetch}&t=${Date.now()}`,
+              fetchOptions,
+            ),
+          ]);
+
+          const scansData = await scansRes.json().catch(() => []);
+          const vacData = await vacRes.json().catch(() => []);
+          const medData = await medRes.json().catch(() => []);
+
+          setDossierAlerts(
+            Array.isArray(scansData)
+              ? scansData.filter((item: any) => !item.is_ok)
+              : [],
           );
+          setVaccinaties(Array.isArray(vacData) ? vacData : []);
+          setMedicaties(Array.isArray(medData) ? medData : []);
         }
-        setVaccinaties(Array.isArray(vacData) ? vacData : []);
-        setMedicaties(Array.isArray(medData) ? medData : []);
       } catch (err) {
-        console.error("Dashboard fetch error:", err);
+        console.error("Kritieke dashboard fout:", err);
       } finally {
         setLoading(false);
       }
     }
-    laadDashboardData();
-  }, [dogIdFromUrl]);
+
+    initDashboard();
+  }, [isLoaded, dogIdFromUrl]);
 
   const genereerRapportData = async () => {
     setIsGenerating(true);
@@ -236,25 +229,14 @@ function DashboardContent() {
                 Upgrade naar Pro
               </button>
             </div>
-
             <Progress
               value={Math.max(5, trial.progress)}
-              className={`h-2.5 border border-white shadow-inner ${
-                trial.progress > 80
-                  ? "[&>div]:bg-rose-500"
-                  : "[&>div]:bg-[#4FC3F7]"
-              }`}
+              className={`h-2.5 border border-white shadow-inner ${trial.progress > 80 ? "[&>div]:bg-rose-500" : "[&>div]:bg-[#4FC3F7]"}`}
             />
-
-            {trial.isExpired && (
-              <p className="text-[10px] font-bold text-rose-500 mt-3 uppercase tracking-tighter italic">
-                Scan functies zijn nu beperkt. Upgrade om direct verder te gaan.
-              </p>
-            )}
           </div>
         )}
 
-        {/* --- PRICING MODAL (De Overlay met 2 plannen) --- */}
+        {/* --- PRICING MODAL --- */}
         {showPricing && (
           <div className="fixed inset-0 bg-[#1A1A2E]/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
             <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full relative shadow-2xl border-4 border-[#4FC3F7]">
@@ -263,21 +245,15 @@ function DashboardContent() {
                 className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 transition-colors">
                 <X size={24} strokeWidth={3} />
               </button>
-
               <div className="text-center mb-8">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Zap size={32} className="text-[#4FC3F7] fill-[#4FC3F7]" />
                 </div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter italic italic">
+                <h2 className="text-2xl font-black uppercase tracking-tighter italic">
                   Kies je plan
                 </h2>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">
-                  Onbeperkt scannen & rapporten
-                </p>
               </div>
-
               <div className="space-y-4">
-                {/* PLAN: MAAND */}
                 <button
                   onClick={() =>
                     (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0`)
@@ -287,20 +263,15 @@ function DashboardContent() {
                     <span className="font-black uppercase tracking-tighter text-sm">
                       Maandelijks
                     </span>
-                    <ChevronRight
-                      size={16}
-                      className="text-slate-300 group-hover:text-[#4FC3F7]"
-                    />
+                    <ChevronRight size={16} />
                   </div>
                   <div className="text-2xl font-black text-[#1A1A2E]">
-                    €X.XX
+                    €9,99
                     <span className="text-xs font-bold text-slate-400 uppercase ml-1">
                       /mnd
                     </span>
                   </div>
                 </button>
-
-                {/* PLAN: JAAR */}
                 <button
                   onClick={() =>
                     (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW`)
@@ -315,23 +286,19 @@ function DashboardContent() {
                     </span>
                   </div>
                   <div className="text-2xl font-black text-white">
-                    €XX.XX
+                    €99,00
                     <span className="text-xs font-bold text-slate-400 uppercase ml-1">
                       /jr
                     </span>
                   </div>
                 </button>
               </div>
-
-              <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-widest mt-6">
-                Beveiligd betalen via Stripe
-              </p>
             </div>
           </div>
         )}
 
         {/* HONDEN SWITCHER */}
-        <div className="flex gap-4 mb-8 border-b border-slate-100 pb-6 overflow-x-auto no-scrollbar items-center">
+        <div className="flex gap-4 mb-8 border-b border-slate-100 pb-6 overflow-x-auto no-scrollbar items-center text-left">
           {allDogs.map((d) => (
             <button
               key={d.id}
@@ -351,7 +318,7 @@ function DashboardContent() {
                 }`}>
                 {d.image_url ? (
                   <img
-                    src={d.image_url}
+                    src={`${d.image_url}?v=${Date.now()}`}
                     alt={d.name}
                     className="object-cover w-full h-full"
                   />
@@ -370,7 +337,7 @@ function DashboardContent() {
             <Link
               href="/onboarding"
               className="flex flex-col items-center gap-2 shrink-0 group">
-              <div className="h-16 w-16 md:h-20 md:w-20 rounded-[1.5rem] border-4 border-dashed border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#4FC3F7] group-hover:bg-blue-50 transition-all text-slate-300 group-hover:text-[#4FC3F7]">
+              <div className="h-16 w-16 md:h-20 md:w-20 rounded-[1.5rem] border-4 border-dashed border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#4FC3F7] transition-all text-slate-300">
                 <Plus size={32} strokeWidth={2.5} />
               </div>
               <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-[#4FC3F7]">
@@ -383,10 +350,12 @@ function DashboardContent() {
         {/* HEADER */}
         <header className="mb-8 md:mb-12 border-b border-slate-100 pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
           <div className="flex items-center gap-5 md:gap-8">
-            <div className="h-16 w-16 md:h-24 md:w-24 rounded-[2rem] overflow-hidden shadow-xl border-4 border-[#1A1A2E] shrink-0 bg-slate-50 flex items-center justify-center">
+            <div
+              key={dog?.image_url}
+              className="h-16 w-16 md:h-24 md:w-24 rounded-[2rem] overflow-hidden shadow-xl border-4 border-[#1A1A2E] shrink-0 bg-slate-50 flex items-center justify-center">
               {dog?.image_url ? (
                 <img
-                  src={dog.image_url}
+                  src={`${dog.image_url}?v=${Date.now()}`}
                   alt={dogName}
                   className="object-cover w-full h-full"
                 />
@@ -403,17 +372,17 @@ function DashboardContent() {
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
                 {dog?.age && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md leading-none">
+                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
                     {dog.age} jaar
                   </span>
                 )}
                 {dog?.gender && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md leading-none">
+                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
                     {dog.gender}
                   </span>
                 )}
                 {dog?.weight && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md leading-none">
+                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
                     {dog.weight} kg
                   </span>
                 )}
@@ -453,17 +422,17 @@ function DashboardContent() {
         {!loading && (
           <section className="mb-10 text-left">
             {dossierAlerts.length > 0 ? (
-              <div className="p-4 md:p-5 rounded-2xl bg-orange-50 border border-orange-200 flex items-start gap-4 shadow-sm text-left">
+              <div className="p-4 md:p-5 rounded-2xl bg-orange-50 border border-orange-200 flex items-start gap-4 shadow-sm">
                 <AlertTriangle className="text-orange-600 shrink-0" size={24} />
-                <p className="text-sm md:text-base text-orange-900 font-medium text-left">
+                <p className="text-sm md:text-base text-orange-900 font-medium">
                   Het lijkt erop dat <strong>{dogName}</strong> ergens last van
                   heeft. Laat dit beoordelen door een arts.
                 </p>
               </div>
             ) : (
-              <div className="p-4 md:p-5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-4 shadow-sm text-left">
+              <div className="p-4 md:p-5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-4 shadow-sm">
                 <ShieldCheck className="text-blue-600 shrink-0" size={24} />
-                <p className="text-sm md:text-base text-blue-900 font-medium text-left">
+                <p className="text-sm md:text-base text-blue-900 font-medium">
                   Alles ziet er goed uit bij <strong>{dogName}</strong>!
                 </p>
               </div>
@@ -471,15 +440,16 @@ function DashboardContent() {
           </section>
         )}
 
+        {/* --- RECENTE ANALYSES (AANGEPASTE SECTIE) --- */}
         <section className="mb-10 md:mb-12 text-left">
-          <h2 className="text-lg md:text-xl font-bold text-[#111827] mb-4 md:mb-6 tracking-tight">
+          <h2 className="text-lg md:text-xl font-bold text-[#111827] mb-4 md:mb-6 tracking-tight text-left">
             Recente analyses
           </h2>
           <div className="space-y-3">
             {loading ? (
               <Loader2 className="animate-spin text-[#4FC3F7]" size={28} />
             ) : dossierAlerts.length === 0 ? (
-              <div className="p-5 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 bg-slate-50/50 flex items-center gap-3 italic text-sm">
+              <div className="p-5 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 bg-slate-50/50 flex items-center gap-3 italic text-sm text-left">
                 <Info size={18} className="text-slate-400" /> Geen actieve
                 meldingen gevonden.
               </div>
@@ -489,22 +459,22 @@ function DashboardContent() {
                   key={item.id}
                   href={`/dashboard/dossier?dogId=${dogIdFromUrl}&tab=${item.tool_id}#${item.id}`}
                   className="group flex items-center justify-between p-3.5 md:p-5 bg-white rounded-2xl border-2 border-slate-300 hover:border-[#4FC3F7] transition-all">
-                  <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
                     <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-[#4FC3F7] flex items-center justify-center text-white shrink-0">
                       <Activity size={24} strokeWidth={2.5} />
                     </div>
-                    <div className="flex flex-wrap items-baseline gap-x-2">
-                      <span className="text-sm md:text-lg font-bold text-[#111827]">
+                    <div className="flex flex-col md:flex-row md:items-baseline md:gap-2 min-w-0 overflow-hidden text-left">
+                      <span className="text-sm md:text-lg font-bold text-[#111827] whitespace-nowrap">
                         {dossierVertalingen[item.tool_id] || item.tool_id}:
                       </span>
-                      <span className="text-xs md:text-base font-semibold text-red-600 truncate">
+                      <span className="text-xs md:text-base font-semibold text-red-600 truncate block">
                         {item.summary}
                       </span>
                     </div>
                   </div>
                   <ChevronRight
                     size={18}
-                    className="text-slate-300 group-hover:text-[#4FC3F7]"
+                    className="text-slate-300 group-hover:text-[#4FC3F7] shrink-0 ml-2"
                   />
                 </Link>
               ))
@@ -517,16 +487,16 @@ function DashboardContent() {
             href={`/dashboard/vaccinaties?dogId=${dogIdFromUrl}`}
             className="block group">
             <div
-              className={`p-5 md:p-6 rounded-2xl border-2 transition-all h-full ${heeftVerlopenVaccinatie ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-300 group-hover:border-[#4FC3F7]"}`}>
+              className={`p-5 md:p-6 rounded-2xl border-2 transition-all h-full text-left ${heeftVerlopenVaccinatie ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-300 group-hover:border-[#4FC3F7]"}`}>
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className={`h-10 w-10 md:h-12 md:w-12 rounded-xl flex items-center justify-center text-white ${heeftVerlopenVaccinatie ? "bg-red-500" : "bg-[#4FC3F7]"}`}>
                   <Syringe size={22} />
                 </div>
-                <h3 className="font-bold">Vaccinaties</h3>
+                <h3 className="font-bold text-left">Vaccinaties</h3>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
-                <div>
+                <div className="text-left">
                   <p className="text-[9px] font-black uppercase text-slate-400">
                     Volgende
                   </p>
@@ -562,7 +532,7 @@ function DashboardContent() {
               </div>
               {actieveMedicatie ? (
                 <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
-                  <div>
+                  <div className="text-left">
                     <p className="text-[9px] font-black uppercase text-slate-400">
                       Lopende kuur
                     </p>
@@ -580,7 +550,7 @@ function DashboardContent() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-[74px] border-2 border-dashed border-slate-300 rounded-xl bg-white/50 text-slate-400 italic text-xs">
+                <div className="flex items-center justify-center h-[74px] border-2 border-dashed border-slate-300 rounded-xl bg-white/50 text-slate-400 italic text-xs text-left">
                   Geen actieve kuren
                 </div>
               )}
