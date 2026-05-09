@@ -24,27 +24,24 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent", // Geeft een meer 'native' app gevoel
     title: "Doggyscan",
   },
   icons: {
     icon: [
-      {
-        url: "/icons/icon-192x192.png?v=1",
-        sizes: "192x192",
-        type: "image/png",
-      },
-      {
-        url: "/icons/icon-512x512.png?v=1",
-        sizes: "512x512",
-        type: "image/png",
-      },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
+      // iOS gebruikt bij voorkeur 180x180. Als je deze niet hebt,
+      // zorg dan dat de 192x192 GEEN transparante achtergrond heeft.
+      { url: "/icons/icon-192x192.png", sizes: "180x180", type: "image/png" },
+    ],
+    // Dit dwingt Safari om het icoon te herkennen
+    other: [
       {
-        url: "/icons/icon-192x192.png?v=1",
-        sizes: "192x192",
-        type: "image/png",
+        rel: "apple-touch-icon",
+        url: "/icons/icon-192x192.png",
       },
     ],
   },

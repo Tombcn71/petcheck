@@ -39,6 +39,7 @@ export async function GET(req: Request) {
           quantity: 1,
         },
       ],
+      locale: "nl",
       mode: "subscription",
       // De 'origin' zorgt ervoor dat de URL altijd compleet is (http://localhost:3000 of jouwdomein.nl)
       success_url: `${origin}/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}`,

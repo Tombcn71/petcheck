@@ -97,6 +97,7 @@ export default function OnboardingPage() {
                 Hoe heet <br />{" "}
                 <span className="text-[#4FC3F7]">je doggy?</span>
               </h1>
+              (in je dashboard kun je meerdere honden toevoegen)
               <input
                 autoFocus
                 value={formData.name}
