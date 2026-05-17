@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Suspense } from "react"; // Toegevoegd
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   PlusCircle,
   History,
-  User,
   Settings,
   PawPrint,
   X,
@@ -23,10 +23,31 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+// Importeer hier je centrale component!
+import { PricingModal } from "@/components/PricingModal";
+
+const SIDEBAR_TRIAL_DAYS = 7;
+
+function checkIsTrialExpired(
+  createdAt: string | Date | number,
+  trialEndsAt?: string,
+) {
+  const start = new Date(createdAt).getTime();
+  const trialDurationMs = SIDEBAR_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  const end = trialEndsAt
+    ? new Date(trialEndsAt).getTime()
+    : start + trialDurationMs;
+  return Date.now() > end;
+}
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Nieuwe Scan", url: "/dashboard/scan", icon: PlusCircle },
+  {
+    title: "Nieuwe Scan",
+    url: "/dashboard/scan",
+    icon: PlusCircle,
+    requirePro: true,
+  },
   { title: "Dossier", url: "/dashboard/dossier", icon: History },
   { title: "Vaccinaties", url: "/dashboard/vaccinaties", icon: History },
   { title: "Medicatie", url: "/dashboard/medicatie", icon: History },
@@ -34,13 +55,21 @@ const menuItems = [
   { title: "Instellingen", url: "/dashboard/instellingen", icon: Settings },
 ];
 
-// --- DE WERKELIJKE CONTENT ---
 function SidebarContentInternal() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { setOpenMobile } = useSidebar();
+  const { user, isLoaded } = useUser();
 
-  const dogId = searchParams.get("dogId");
+  const [showSidebarPricing, setShowSidebarPricing] = useState(false);
+
+  const dogId = searchParams.get("dogId") || undefined;
+  const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+
+  const isExpired = user?.createdAt
+    ? checkIsTrialExpired(user.createdAt, trialEndsAt)
+    : false;
 
   return (
     <>
@@ -50,6 +79,8 @@ function SidebarContentInternal() {
         <SidebarMenu className="gap-2 flex-1">
           {menuItems.map((item) => {
             const finalUrl = dogId ? `${item.url}?dogId=${dogId}` : item.url;
+            const fallbackToDashboardPopup =
+              item.requirePro && isLoaded && !isPro && isExpired;
 
             return (
               <SidebarMenuItem key={item.title}>
@@ -61,10 +92,22 @@ function SidebarContentInternal() {
                       ? "bg-blue-50 text-blue-600 font-bold"
                       : "text-[#1A1A2E]"
                   }`}>
-                  <Link href={finalUrl} onClick={() => setOpenMobile(false)}>
-                    <item.icon size={22} />
-                    <span className="font-bold">{item.title}</span>
-                  </Link>
+                  {fallbackToDashboardPopup ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenMobile(false);
+                        setShowSidebarPricing(true);
+                      }}>
+                      <item.icon size={22} />
+                      <span className="font-bold">{item.title}</span>
+                    </button>
+                  ) : (
+                    <Link href={finalUrl} onClick={() => setOpenMobile(false)}>
+                      <item.icon size={22} />
+                      <span className="font-bold">{item.title}</span>
+                    </Link>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -79,11 +122,17 @@ function SidebarContentInternal() {
           <X size={32} strokeWidth={3} />
         </button>
       </SidebarContent>
+
+      {/* --- CENTRALE PRICING MODAL MET WITTE BLUR EN LOGO --- */}
+      <PricingModal
+        isOpen={showSidebarPricing}
+        onClose={() => setShowSidebarPricing(false)}
+        dogId={dogId}
+      />
     </>
   );
 }
 
-// --- DE HOOFD EXPORT MET SUSPENSE ---
 export function AppSidebar() {
   return (
     <Sidebar

@@ -3,8 +3,18 @@
 import { CheckCircle2, Sparkles, Gift, Zap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs"; // Toegevoegd voor trial check
 
 export default function Pricing() {
+  const { user, isLoaded } = useUser();
+
+  // Trial Logica (Zelfde als op je scan-pagina)
+  const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+  const trialExpired =
+    !isPro &&
+    (trialEndsAt ? new Date(trialEndsAt).getTime() < Date.now() : false);
+
   const features = [
     "Toegang voor 3 honden",
     "Onbeperkte AI-gezondheidsscans",
@@ -23,12 +33,25 @@ export default function Pricing() {
           <h2
             className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-4 text-[#01579B]"
             style={{ fontFamily: "'Syne', sans-serif" }}>
-            START JE <span className="text-[#4FC3F7]">GRATIS WEEK</span>
+            {/* PAS TEKST AAN OP BASIS VAN TRIAL STATUS */}
+            {trialExpired ? (
+              <>
+                KIES JOUW <span className="text-[#4FC3F7]">PLAN</span>
+              </>
+            ) : (
+              <>
+                START JE <span className="text-[#4FC3F7]">GRATIS WEEK</span>
+              </>
+            )}
           </h2>
           <p className="text-slate-500 font-bold text-lg leading-relaxed">
-            Ontdek wat AI voor de gezondheid van je hond kan betekenen.
+            {trialExpired
+              ? "Je proefperiode is afgelopen. Activeer je account om direct weer scans te kunnen maken."
+              : "Ontdek wat AI voor de gezondheid van je hond kan betekenen."}
             <span className="block text-[#0288D1] font-black text-sm mt-2 uppercase tracking-[0.2em]">
-              Geen betaalgegevens nodig om te starten
+              {trialExpired
+                ? "Maandelijks opzegbaar • Direct actief"
+                : "Geen betaalgegevens nodig om te starten"}
             </span>
           </p>
         </header>
@@ -65,7 +88,15 @@ export default function Pricing() {
             <Button
               asChild
               className="w-full h-16 rounded-2xl bg-white border-4 border-[#01579B] text-[#01579B] font-black uppercase text-sm tracking-widest hover:bg-[#F0F9FF] transition-all">
-              <Link href="/signup?interval=month&dogs=3">Kies Maandelijks</Link>
+              {/* Als de trial verlopen is sturen we ze direct naar de betaallink ipv signup */}
+              <Link
+                href={
+                  trialExpired
+                    ? "/api/stripe?priceId=JOUW_MAAND_PRICE_ID"
+                    : "/signup?interval=month&dogs=3"
+                }>
+                {trialExpired ? "Activeer Maandelijks" : "Kies Maandelijks"}
+              </Link>
             </Button>
           </div>
 
@@ -122,7 +153,14 @@ export default function Pricing() {
             <Button
               asChild
               className="w-full h-20 rounded-2xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-lg tracking-widest transition-all shadow-lg active:scale-95 border-none">
-              <Link href="/signup?interval=year&dogs=3">Start Gratis Week</Link>
+              <Link
+                href={
+                  trialExpired
+                    ? "/api/stripe?priceId=JOUW_JAAR_PRICE_ID"
+                    : "/signup?interval=year&dogs=3"
+                }>
+                {trialExpired ? "Activeer Jaarlijks" : "Start Gratis Week"}
+              </Link>
             </Button>
           </div>
         </div>
@@ -135,7 +173,9 @@ export default function Pricing() {
             </span>
           </div>
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-            7 dagen proefperiode • Altijd opzegbaar • Geen betaalgegevens nodig
+            {trialExpired
+              ? "Direct toegang tot alle 12 scans • Altijd opzegbaar"
+              : "7 dagen proefperiode • Altijd opzegbaar • Geen betaalgegevens nodig"}
           </p>
         </div>
       </div>

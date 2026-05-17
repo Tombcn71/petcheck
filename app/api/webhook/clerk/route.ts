@@ -41,17 +41,19 @@ export async function POST(req: Request) {
   // Logica voor nieuwe gebruiker
   if (evt.type === "user.created") {
     const { id, first_name, last_name, email_addresses } = evt.data;
-    const email = email_addresses[0].email_address;
-    const fullName = `${first_name} ${last_name}`;
+    const email = email_addresses[0]?.email_address || "";
+    const fullName = `${first_name || ""} ${last_name || ""}`.trim();
 
-    // Maak de gebruiker aan in Neon
+    // Maak de gebruiker aan in Neon en zet de plan_status expliciet op 'free' of 'trial'
     await sql`
-      INSERT INTO user_settings (clerk_id, full_name, language, units)
-      VALUES (${id}, ${fullName}, 'Nederlands', 'kg')
+      INSERT INTO user_settings (clerk_id, full_name, language, units, plan_status, created_at, updated_at)
+      VALUES (${id}, ${fullName}, 'Nederlands', 'kg', 'free', NOW(), NOW())
       ON CONFLICT (clerk_id) DO NOTHING;
     `;
 
-    console.log(`Gebruiker ${id} opgeslagen in Neon`);
+    console.log(
+      `✅ Gebruiker ${id} succesvol opgeslagen in Neon met plan_status 'free'`,
+    );
   }
 
   return new Response("Webhook succesvol", { status: 200 });

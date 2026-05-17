@@ -11,54 +11,25 @@ import Faq from "@/components/Faq";
 
 const features = [
   {
-    icon: "👁️",
-    title: "Oog Check",
-    desc: "Controleer op staar, rode ogen en ontstekingen.",
+    icon: "🤕",
+    title: "Pijn Signalen",
+    desc: "AI-analyse van de gezichtsuitdrukking voor acute pijn.",
   },
+  {
+    icon: "🤮",
+    title: "Braaksel Analyse",
+    desc: "Analyseer de kleur en inhoud van het braaksel. ",
+  },
+
   {
     icon: "💩",
     title: "Ontlasting Analyse",
     desc: "Check op bloed, consistentie en tekenen van wormen.",
   },
   {
-    icon: "🦷",
-    title: "Gebit & Tandvlees",
-    desc: "Monitor tandsteen en ontstoken tandvlees (gingivitis).",
-  },
-  {
-    icon: "🐾",
-    title: "Huid & Allergie",
-    desc: "Herken schimmels, hotspots en allergische uitslag.",
-  },
-  {
-    icon: "⚖️",
-    title: "Gewicht & Conditie",
-    desc: "Krijg advies over de Body Condition Score van je hond.",
-  },
-  {
-    icon: "🤕",
-    title: "Pijn Signalen",
-    desc: "AI-analyse van de gezichtsuitdrukking voor acute pijn.",
-  },
-  {
-    icon: "🐕",
-    title: "Vacht & Glans",
-    desc: "Beoordeel doffe vacht en mogelijke voedingstekorten.",
-  },
-  {
-    icon: "🐶",
-    title: "Neus Check",
-    desc: "Check op korsten, extreme droogheid of loopneuzen.",
-  },
-  {
-    icon: "🦟",
-    title: "Ongedierte Spotter",
-    desc: "Vind vlooien en mijten tussen de haren van je hond.",
-  },
-  {
-    icon: "🕷️",
-    title: "Teken Identificatie",
-    desc: "Identificeer de teek en bepaal het risico op Lyme.",
+    icon: "👁️",
+    title: "Oog Check",
+    desc: "Controleer op staar, rode ogen en ontstekingen.",
   },
   {
     icon: "🐶",
@@ -66,9 +37,41 @@ const features = [
     desc: "Spoor oormijt en diepliggende ontstekingen op.",
   },
   {
+    icon: "🐶",
+    title: "Neus Check",
+    desc: "Check op korsten, extreme droogheid of loopneuzen.",
+  },
+  {
+    icon: "🐾",
+    title: "Huid & Allergie",
+    desc: "Herken schimmels, hotspots en allergische uitslag.",
+  },
+  {
+    icon: "🪰",
+    title: "Parasieten & Teken",
+    desc: "Vind vlooien, mijten of luizen en identificeer direct het risico van een teek.",
+  },
+  {
     icon: "🔬",
     title: "Ringworm & Schurft",
     desc: "Maak direct onderscheid tussen verschillende parasieten.",
+  },
+  {
+    icon: "🦷",
+    title: "Gebit & Tandvlees",
+    desc: "Monitor tandsteen en ontstoken tandvlees (gingivitis).",
+  },
+
+  {
+    icon: "⚖️",
+    title: "Houding-Symmetrie",
+    desc: "Check of je hond recht staat en zijn gewicht goed verdeelt",
+  },
+
+  {
+    icon: "🐕",
+    title: "Vacht & Glans",
+    desc: "Beoordeel doffe vacht en mogelijke voedingstekorten.",
   },
 ];
 

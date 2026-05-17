@@ -3,37 +3,68 @@ import { GoogleGenAI } from "@google/genai";
 import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
+import { TRIAL_DAYS } from "../../trial-config"; // Dit is nu je enige, centrale bron!
 
-// Initialisatie van de AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
-  eyes: "Focus op de ogen: check op troebelheid (staar), roodheid (ontsteking), afscheiding of zwelling van de oogleden.",
-  poop: "Analyseer de ontlasting: beoordeel consistentie (diarree?), kleur (bloed/zwart?), slijm of zichtbare parasieten.",
-  dental:
-    "Check het gebit: zoek naar tandsteen (geel/bruin), rood tandvlees (gingivitis) of terugwijkend tandvlees.",
-  skin: "Huidanalyse: zoek naar kale plekken, roodheid, hotspots, korstjes of schilfering.",
-  bcs: "Body Condition Score: Beoordeel de bouw van de hond. Zijn de ribben te zichtbaar (ondergewicht) of is er geen taille (overgewicht)?",
   pain: "Pijn-indicatie: Analyseer de gezichtsuitdrukking (Dog Facial Assessment). Let op samengeknepen ogen, stand van de oren en spanning rond de bek.",
-  coat: "Vachtkwaliteit: Beoordeel glans, dofheid, vettigheid of tekenen van overmatig verharen.",
+  vomit:
+    "Braaksel Analyse: Analyseer de kleur en inhoud van het braaksel op de foto. Herken signalen van gal (geel), bloed (rood/bruin), vreemde voorwerpen of maagzuur (wit schuim) en geef aan of dit duidt op een acute situatie.",
+  poop: "Analyseer de ontlasting: beoordeel consistentie (diarree?), kleur (bloed/zwart?), slijm of zichtbare parasieten.",
+  eyes: "Focus op de ogen: check op troebelheid (staar), roodheid (ontsteking), afscheiding of zwelling van de oogleden.",
+  ears: "Ooranalyse: Kijk in de oorschelp. Zoek naar roodheid, overmatig donker oorsmeer (oormijt), gele afscheiding (infectie) of krabsporen/korstjes.",
   nose: "Neusanalyse: Check op overmatige droogheid, korsten (hyperkeratose) of abnormale neusuitvloeiing.",
+  skin: "Huidanalyse: zoek naar kale plekken, roodheid, hotspots, korstjes of schilfering.",
   ticks:
-    "Teken-check: Zoek naar kleine donkere bultjes of vastgebeten teken op de huid/tussen de haren.",
-  fleas:
-    "Vlooien/Parasieten: Zoek naar vlooienpoepjes (zwarte puntjes) of actieve insecten in de vacht.",
+    "Parasieten & Teken Check: Zoek naar actieve insecten zoals vlooien, luizen of mijten, vlooienpoepjes (zwarte puntjes) in de vacht én vastgebeten teken (kleine donkere bultjes op de huid). Identificeer indien van toepassing het risico van de teek.",
   mange:
     "Schurft & Ringworm: Zoek naar cirkelvormige haaruitval of extreme korstvorming en irritatie.",
-  ears: "Ooranalyse: Kijk in de oorschelp. Zoek naar roodheid, overmatig donker oorsmeer (oormijt), gele afscheiding (infectie) of krabsporen/korstjes.",
+  dental:
+    "Check het gebit: zoek naar tandsteen (geel/bruin), rood tandvlees (gingivitis) of terugwijkend tandvlees.",
+  symmetry:
+    "Lichaams-Symmetrie Check: Analyseer de stand van de hond (recht van voren of van achteren). Kijk of de hond recht staat, zijn gewicht gelijkmatig verdeelt over his poten en of er asymmetrie is die kan duiden op gewrichtspijn of blessures.",
+  coat: "Vachtkwaliteit: Beoordeel glans, dofheid, vettigheid of tekenen van overmatig verharen.",
 };
 
 export async function POST(req: Request) {
   try {
-    // 1. Auth check
-    const { userId } = await auth();
+    // 1. Auth & Trial Check
+    const { userId, sessionClaims } = await auth();
     if (!userId)
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-    // 2. Input check (NU MET dogId)
+    // Haal metadata op uit de Clerk sessie
+    const metadata = sessionClaims?.metadata as
+      | { role?: string; trialEndsAt?: string }
+      | undefined;
+    const isPro = metadata?.role === "pro";
+    const trialEndsAt = metadata?.trialEndsAt;
+
+    // Pak de starttijd van de token (of nu als fallback)
+    const tokenIssuedAt = sessionClaims?.iat
+      ? sessionClaims.iat * 1000
+      : Date.now();
+
+    // Bereken de exacte proefperiode in milliseconden op basis van de variabele bovenaan
+    const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const backupTrialExpired = Date.now() - tokenIssuedAt > trialDurationMs;
+
+    // Bepaal of de trial definitief voorbij is
+    const trialExpired =
+      !isPro &&
+      (trialEndsAt
+        ? new Date(trialEndsAt).getTime() < Date.now()
+        : backupTrialExpired);
+
+    if (trialExpired) {
+      return NextResponse.json(
+        { error: "Trial verlopen. Upgrade naar een betaald abonnement." },
+        { status: 403 },
+      );
+    }
+
+    // 2. Input check
     const { image, toolId, dogId } = await req.json();
     if (!image)
       return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
@@ -80,7 +111,7 @@ export async function POST(req: Request) {
       .trim();
     const aiData = JSON.parse(cleanJsonString);
 
-    // 5. Database Opslag (NU MET dog_id KOLOM)
+    // 5. Database Opslag
     const sql = neon(process.env.DATABASE_URL!);
     try {
       await sql`

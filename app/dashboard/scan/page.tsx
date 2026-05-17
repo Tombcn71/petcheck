@@ -2,7 +2,7 @@
 import { useState, useRef, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs"; // Toegevoegd
+import { useUser } from "@clerk/nextjs";
 import {
   Card,
   CardContent,
@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Lock } from "lucide-react"; // Lock toegevoegd
+import { ArrowLeft, Loader2, X, Zap, ChevronRight } from "lucide-react";
+import { TRIAL_DAYS } from "../../trial-config"; // Haal de centrale tijd op
 
 interface Result {
   summary?: string;
@@ -29,100 +30,100 @@ interface Dog {
 
 const tools = [
   {
-    id: "eyes",
-    icon: "👁️",
-    title: "Oog Check",
-    description: "Check op irritatie of roodheid",
-    bg: "#E6F1FB",
-    color: "#0288D1",
+    id: "pain",
+    icon: "🤕",
+    title: "Pijn Signalen",
+    description: "Analyseer gezichtsuitdrukkingen op acute pijn",
+    bg: "#FCE4EC",
+    color: "#D81B60",
+  },
+  {
+    id: "vomit",
+    icon: "🤮",
+    title: "Braaksel Analyse",
+    description: "Analyseer kleur en inhoud op alarmsignalen",
+    bg: "#F1F8E9",
+    color: "#558B2F",
   },
   {
     id: "poop",
     icon: "💩",
     title: "Ontlasting Analyse",
-    description: "Detecteer afwijkingen in kleur",
+    description: "Detecteer bloed, wormen en consistentie",
     bg: "#F1EFE8",
     color: "#5D4037",
   },
   {
-    id: "dental",
-    icon: "🦷",
-    title: "Gebit & Tandvlees",
-    description: "Monitor tandsteen en tandvlees",
-    bg: "#EAF3DE",
-    color: "#388E3C",
+    id: "eyes",
+    icon: "👁️",
+    title: "Oog Check",
+    description: "Controleer op staar, roodheid of irritatie",
+    bg: "#E6F1FB",
+    color: "#0288D1",
   },
   {
-    id: "skin",
-    icon: "🐾",
-    title: "Huid & Vacht",
-    description: "Check op plekjes of irritatie",
-    bg: "#FAEEDA",
-    color: "#E65100",
-  },
-  {
-    id: "bcs",
-    icon: "⚖️",
-    title: "Gewichts-check",
-    description: "Beoordeel de BCS score",
-    bg: "#F1F8E9",
-    color: "#2E7D32",
-  },
-  {
-    id: "pain",
-    icon: "🐕",
-    title: "Comfort Monitor",
-    description: "AI-analyse van ongemak",
-    bg: "#FCE4EC",
-    color: "#D81B60",
-  },
-  {
-    id: "coat",
-    icon: "🐕",
-    title: "Vachtkwaliteit",
-    description: "Beoordeel glans en conditie",
-    bg: "#FFF8E1",
-    color: "#FF8F00",
+    id: "ears",
+    icon: "👂",
+    title: "Oor Check",
+    description: "Spoor diepliggende ontstekingen of mijt op",
+    bg: "#E1F5EE",
+    color: "#00695C",
   },
   {
     id: "nose",
-    icon: "🐶",
+    icon: "👃",
     title: "Neus Analyse",
-    description: "Check op droogheid of korstjes",
+    description: "Check op extreme droogheid of korstjes",
     bg: "#ECEFF1",
     color: "#455A64",
   },
   {
-    id: "ticks",
-    icon: "🕷️",
-    title: "Teken Spotter",
-    description: "Identificeer teken en risico's",
-    bg: "#EEEDFE",
-    color: "#6A1B9A",
+    id: "skin",
+    icon: "🐾",
+    title: "Huid & Allergie",
+    description: "Herken hotspots, kale plekken en uitslag",
+    bg: "#FAEEDA",
+    color: "#E65100",
   },
   {
-    id: "fleas",
-    icon: "🦟",
-    title: "Parasieten Check",
-    description: "Spoor vlooien of mijten op",
-    bg: "#FBEAF0",
-    color: "#AD1457",
+    id: "ticks",
+    icon: "🕷️",
+    title: "Parasieten & Teken",
+    description: "Spoor actieve vlooien, mijten en teken op",
+    bg: "#EEEDFE",
+    color: "#6A1B9A",
   },
   {
     id: "mange",
     icon: "🔬",
     title: "Huidinfecties",
-    description: "Check op hotspots of schimmel",
+    description: "Maak onderscheid tussen schimmel of schurft",
     bg: "#FCEBEB",
     color: "#C62828",
   },
   {
-    id: "ears",
-    icon: "🐶",
-    title: "Oor Check",
-    description: "Detecteer roodheid of mijt",
-    bg: "#E1F5EE",
-    color: "#00695C",
+    id: "dental",
+    icon: "🦷",
+    title: "Gebit & Tandvlees",
+    description: "Monitor tandsteen en tandvleesontstekingen",
+    bg: "#EAF3DE",
+    color: "#388E3C",
+  },
+  {
+    id: "symmetry",
+    icon: "🪞",
+    title: "Lichaams-Symmetrie",
+    description: "Beoordeel de stand en gewichtsverdeling",
+    bg: "#E0F7FA",
+    color: "#00838F",
+  },
+  {
+    id: "coat",
+    icon: "🐕",
+    title: "Vachtkwaliteit",
+    description: "Beoordeel glans, dofheid en voedingstekorten",
+    bg: "#FFF8E1",
+    color: "#FF8F00",
   },
 ];
 
@@ -137,13 +138,21 @@ function ScanContent() {
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Trial Logica
   const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+
   const signupDate = user?.createdAt
     ? new Date(user.createdAt).getTime()
     : Date.now();
-  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-  const trialExpired = !isPro && Date.now() - signupDate > sevenDaysInMs;
+  const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  const backupTrialExpired = Date.now() - signupDate > trialDurationMs;
+
+  const trialExpired =
+    !!user &&
+    !isPro &&
+    (trialEndsAt
+      ? new Date(trialEndsAt).getTime() < Date.now()
+      : backupTrialExpired);
 
   useEffect(() => {
     async function loadDog() {
@@ -164,7 +173,7 @@ function ScanContent() {
   }, [dogId]);
 
   async function analyze(toolId: string, file: File) {
-    if (trialExpired) return; // Extra check
+    if (trialExpired) return;
 
     setLoading((prev) => ({ ...prev, [toolId]: true }));
     const reader = new FileReader();
@@ -183,6 +192,15 @@ function ScanContent() {
             dogId: dogId ? parseInt(dogId) : null,
           }),
         });
+
+        if (res.status === 403) {
+          setResults((prev) => ({
+            ...prev,
+            [toolId]: { error: "Je proefperiode is verlopen." },
+          }));
+          return;
+        }
+
         const data = await res.json();
         setResults((prev) => ({ ...prev, [toolId]: data }));
       } catch (err) {
@@ -204,28 +222,71 @@ function ScanContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
-      {/* OVERLAY BIJ VERLOPEN TRIAL */}
+      {/* EXACT DEZELFDE BRUTAAL MOOIE POPUP MET STRIPE DIRECT IN JE SCAN PAGINA */}
       {trialExpired && (
-        <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-md flex items-center justify-center p-4">
-          <Card className="max-w-md w-full border-4 border-[#01579B] rounded-[2.5rem] shadow-2xl p-8 text-center animate-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-[#F0F9FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Lock className="text-[#01579B]" size={32} />
+        <div className="fixed inset-0 bg-[#1A1A2E]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full relative shadow-2xl border-4 border-[#4FC3F7]">
+            <Link
+              href="/dashboard"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 transition-colors">
+              <X size={24} strokeWidth={3} />
+            </Link>
+
+            <div className="text-center mb-8">
+              <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Zap size={32} className="text-[#4FC3F7] fill-[#4FC3F7]" />
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-tighter italic text-[#111827]">
+                Trial voorbij
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-2 px-2">
+                Je gratis week Doggyscan is afgelopen. Kies een plan om
+                onbeperkt scans te blijven maken voor {dog?.name || "je hond"}.
+              </p>
             </div>
-            <h2
-              className="text-3xl font-black text-[#01579B] uppercase mb-4"
-              style={{ fontFamily: "'Syne', sans-serif" }}>
-              Trial <span className="text-[#4FC3F7]">Voorbij</span>
-            </h2>
-            <p className="font-bold text-slate-500 mb-8 leading-relaxed">
-              Je gratis week Doggyscan is afgelopen. Kies een plan om onbeperkt
-              scans te blijven maken voor {dog?.name || "je hond"}.
-            </p>
-            <Button
-              asChild
-              className="w-full h-16 rounded-2xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase tracking-widest transition-all">
-              <Link href="/#pricing">Bekijk Plannen</Link>
-            </Button>
-          </Card>
+
+            <div className="space-y-4">
+              <button
+                onClick={() =>
+                  (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0`)
+                }
+                className="w-full group bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl hover:border-[#4FC3F7] transition-all text-left">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-black uppercase tracking-tighter text-sm text-[#111827]">
+                    Maandelijks
+                  </span>
+                  <ChevronRight size={16} className="text-[#111827]" />
+                </div>
+                <div className="text-2xl font-black text-[#1A1A2E]">
+                  €9,99
+                  <span className="text-xs font-bold text-slate-400 uppercase ml-1">
+                    /mnd
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() =>
+                  (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW`)
+                }
+                className="w-full group bg-[#1A1A2E] border-2 border-[#1A1A2E] p-5 rounded-2xl hover:scale-[1.02] transition-all text-left shadow-lg">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-black uppercase tracking-tighter text-sm text-[#4FC3F7]">
+                    Jaarlijks
+                  </span>
+                  <span className="bg-[#4FC3F7] text-[#1A1A2E] text-[8px] font-black px-2 py-0.5 rounded-full uppercase">
+                    Bespaar 20%
+                  </span>
+                </div>
+                <div className="text-2xl font-black text-white">
+                  €99,00
+                  <span className="text-xs font-bold text-slate-400 uppercase ml-1">
+                    /jr
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -348,19 +409,27 @@ function ScanContent() {
                           : "Start Analyse"}
                   </Button>
 
-                  {res && !isLoading && !res.error && (
+                  {res && !isLoading && (
                     <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div
-                        className={`p-3 rounded-xl border text-center text-xs font-black uppercase tracking-widest ${res.isOk ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"}`}>
-                        {res.summary}
-                      </div>
-                      <div className="mt-3 text-[13px] text-slate-600 leading-relaxed italic">
-                        <strong>Inzicht:</strong> {res.details}
-                      </div>
-                      {res.advice && (
-                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border-l-4 border-[#1A1A2E] text-[12px] text-slate-800 font-bold">
-                          {res.advice}
+                      {res.error ? (
+                        <div className="p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-center text-xs font-bold">
+                          {res.error}
                         </div>
+                      ) : (
+                        <>
+                          <div
+                            className={`p-3 rounded-xl border text-center text-xs font-black uppercase tracking-widest ${res.isOk ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"}`}>
+                            {res.summary}
+                          </div>
+                          <div className="mt-3 text-[13px] text-slate-600 leading-relaxed italic">
+                            <strong>Inzicht:</strong> {res.details}
+                          </div>
+                          {res.advice && (
+                            <div className="mt-2 p-3 bg-slate-50 rounded-xl border-l-4 border-[#1A1A2E] text-[12px] text-slate-800 font-bold">
+                              {res.advice}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

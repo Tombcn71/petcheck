@@ -14,6 +14,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+// Importeer hier je PricingModal component (pas het pad aan naar waar jouw bestand staat)
+import { PricingModal } from "@/components/PricingModal";
+
 export default function InstellingenPage() {
   const { user, isLoaded } = useUser();
   const { signOut, openUserProfile } = useClerk();
@@ -21,11 +24,13 @@ export default function InstellingenPage() {
   const [loading, setLoading] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [initialFetchLoading, setInitialFetchLoading] = useState(true);
+  const [isPricingOpen, setIsPricingOpen] = useState(false); // Staat om de modal te openen/sluiten
 
   const [settings, setSettings] = useState({
     name: "",
     email: "",
     marketingEmails: true,
+    planStatus: "free",
   });
 
   // Haal data op: Database eerst, Clerk als backup
@@ -39,14 +44,15 @@ export default function InstellingenPage() {
           name: dbData?.full_name || user?.fullName || "",
           email: user?.primaryEmailAddress?.emailAddress || "",
           marketingEmails: dbData?.notifications ?? true,
+          planStatus: dbData?.plan_status || "free",
         });
       } catch (err) {
         console.error("Fout bij ophalen:", err);
-        // Fallback naar Clerk data bij error
         setSettings((prev) => ({
           ...prev,
           name: user?.fullName || "",
           email: user?.primaryEmailAddress?.emailAddress || "",
+          planStatus: "free",
         }));
       } finally {
         setInitialFetchLoading(false);
@@ -169,44 +175,78 @@ export default function InstellingenPage() {
             </div>
           </section>
 
-          {/* 2. ABONNEMENT */}
+          {/* 2. DYNAMISCH ABONNEMENT */}
           <section className="space-y-6 pt-6 border-t border-slate-50">
             <h2 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#4FC3F7]">
               <CreditCard size={14} /> Facturatie
             </h2>
-            <div className="p-8 bg-sky-50/50 border-2 border-sky-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-[#4FC3F7]">
-                  <ShieldCheck size={24} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">
-                      DoggyScan Basis
-                    </p>
-                    <span className="bg-[#4FC3F7]/10 text-[#4FC3F7] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
-                      Actief
-                    </span>
+
+            {settings.planStatus === "pro" ? (
+              /* PRO LAYOUT */
+              <div className="p-8 bg-emerald-50/60 border-2 border-emerald-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-emerald-500">
+                    <ShieldCheck size={24} />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                    Beheer je betalingen veilig via de Stripe portal
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">
+                        DoggyScan Pro
+                      </p>
+                      <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+                        Actief
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                      Je hebt onbeperkt toegang tot alle medische scans en
+                      rapporten.
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={openStripePortal}
+                  disabled={stripeLoading}
+                  className="px-8 py-4 bg-white text-[#1A1A2E] font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-emerald-100 hover:bg-emerald-50 transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm">
+                  {stripeLoading ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <>
+                      <ExternalLink size={14} /> Abonnement Beheren
+                    </>
+                  )}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={openStripePortal}
-                disabled={stripeLoading}
-                className="px-8 py-4 bg-white text-[#1A1A2E] font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-sky-100 transition-all flex items-center gap-2 disabled:opacity-50">
-                {stripeLoading ? (
-                  <Loader2 className="animate-spin" size={14} />
-                ) : (
-                  <>
-                    <ExternalLink size={14} /> Facturen & Plan
-                  </>
-                )}
-              </button>
-            </div>
+            ) : (
+              /* GRATIS LAYOUT (OPENT PRICING MODAL) */
+              <div className="p-8 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-400">
+                    <User size={24} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">
+                        DoggyScan Gratis
+                      </p>
+                      <span className="bg-slate-200 text-slate-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+                        Beperkt
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                      Upgrade naar Pro for onbeperkte scans en officiële
+                      PDF-rapporten.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPricingOpen(true)} // Zet hier de modal op open!
+                  className="px-8 py-4 bg-[#1A1A2E] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#1A1A2E] hover:bg-[#4FC3F7] hover:border-[#4FC3F7] transition-all flex items-center gap-2 shadow-md">
+                  Upgrade naar Pro
+                </button>
+              </div>
+            )}
           </section>
 
           {/* 3. NOTIFICATIES */}
@@ -268,6 +308,14 @@ export default function InstellingenPage() {
         </form>
       </div>
       <div className="h-20" />
+
+      {/* PRICING MODAL COMPONENT */}
+      {isPricingOpen && (
+        <PricingModal
+          isOpen={isPricingOpen}
+          onClose={() => setIsPricingOpen(false)}
+        />
+      )}
     </div>
   );
 }

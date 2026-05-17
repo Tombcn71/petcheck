@@ -18,27 +18,39 @@ import {
   Info,
   Plus,
   Zap,
-  X,
 } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RapportPDF } from "@/components/RapportPDF";
 import { Progress } from "@/components/ui/progress";
+import { PricingModal } from "@/components/PricingModal"; // Zorg dat dit pad klopt met jouw mappenstructuur
+import { TRIAL_DAYS } from "../trial-config";
 
-// --- Trial Logica Functie ---
-function getTrialStatus(createdAt: string | Date | number) {
-  const TRIAL_DAYS = 7;
+// --- Dynamische Trial Logica Functie ---
+function getTrialStatus(
+  createdAt: string | Date | number,
+  trialEndsAt?: string,
+) {
   const start = new Date(createdAt).getTime();
-  const duration = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+  const end = trialEndsAt
+    ? new Date(trialEndsAt).getTime()
+    : start + trialDurationMs;
   const now = Date.now();
+
+  const totalDuration = end - start;
   const elapsed = now - start;
 
-  const progress = Math.min(100, Math.max(0, (elapsed / duration) * 100));
-  const daysLeft = Math.max(
-    0,
-    Math.ceil((duration - elapsed) / (24 * 60 * 60 * 1000)),
-  );
+  const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+  const msLeft = Math.max(0, end - now);
+  const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
 
-  return { progress, daysLeft, isExpired: elapsed > duration };
+  return {
+    progress,
+    daysLeft,
+    isExpired: now > end,
+    msLeft,
+  };
 }
 
 // --- Interfaces ---
@@ -113,13 +125,14 @@ function DashboardContent() {
   const [showPricing, setShowPricing] = useState(false);
 
   const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+
   const trial = user?.createdAt
-    ? getTrialStatus(user.createdAt)
-    : { progress: 0, daysLeft: 1, isExpired: false };
+    ? getTrialStatus(user.createdAt, trialEndsAt)
+    : { progress: 0, daysLeft: 1, isExpired: false, msLeft: 0 };
 
   const dogName = dog?.name || "Laden...";
 
-  // MASTER FETCH: Haalt alles in één keer op
   useEffect(() => {
     async function initDashboard() {
       if (!isLoaded) return;
@@ -220,7 +233,9 @@ function DashboardContent() {
                 <h4 className="text-xs font-black uppercase tracking-widest text-[#1A1A2E]">
                   {trial.isExpired
                     ? "Trial verlopen"
-                    : `Trial Status: ${trial.daysLeft} dag over`}
+                    : TRIAL_DAYS < 1
+                      ? `Trial Status: Actief (Kort testen)`
+                      : `Trial Status: ${trial.daysLeft} ${trial.daysLeft === 1 ? "dag" : "dagen"} over`}
                 </h4>
               </div>
               <button
@@ -236,66 +251,12 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* --- PRICING MODAL --- */}
-        {showPricing && (
-          <div className="fixed inset-0 bg-[#1A1A2E]/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-            <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full relative shadow-2xl border-4 border-[#4FC3F7]">
-              <button
-                onClick={() => setShowPricing(false)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 transition-colors">
-                <X size={24} strokeWidth={3} />
-              </button>
-              <div className="text-center mb-8">
-                <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Zap size={32} className="text-[#4FC3F7] fill-[#4FC3F7]" />
-                </div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter italic">
-                  Kies je plan
-                </h2>
-              </div>
-              <div className="space-y-4">
-                <button
-                  onClick={() =>
-                    (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0`)
-                  }
-                  className="w-full group bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl hover:border-[#4FC3F7] transition-all text-left">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-black uppercase tracking-tighter text-sm">
-                      Maandelijks
-                    </span>
-                    <ChevronRight size={16} />
-                  </div>
-                  <div className="text-2xl font-black text-[#1A1A2E]">
-                    €9,99
-                    <span className="text-xs font-bold text-slate-400 uppercase ml-1">
-                      /mnd
-                    </span>
-                  </div>
-                </button>
-                <button
-                  onClick={() =>
-                    (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW`)
-                  }
-                  className="w-full group bg-[#1A1A2E] border-2 border-[#1A1A2E] p-5 rounded-2xl hover:scale-[1.02] transition-all text-left shadow-lg">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-black uppercase tracking-tighter text-sm text-[#4FC3F7]">
-                      Jaarlijks
-                    </span>
-                    <span className="bg-[#4FC3F7] text-[#1A1A2E] text-[8px] font-black px-2 py-0.5 rounded-full uppercase">
-                      Bespaar 20%
-                    </span>
-                  </div>
-                  <div className="text-2xl font-black text-white">
-                    €99,00
-                    <span className="text-xs font-bold text-slate-400 uppercase ml-1">
-                      /jr
-                    </span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* --- GEDEELDE PRICING MODAL COMPONENT --- */}
+        <PricingModal
+          isOpen={showPricing}
+          onClose={() => setShowPricing(false)}
+          dogId={dogIdFromUrl}
+        />
 
         {/* HONDEN SWITCHER */}
         <div className="flex gap-4 mb-8 border-b border-slate-100 pb-6 overflow-x-auto no-scrollbar items-center text-left">
@@ -440,7 +401,7 @@ function DashboardContent() {
           </section>
         )}
 
-        {/* --- RECENTE ANALYSES (AANGEPASTE SECTIE) --- */}
+        {/* --- RECENTE ANALYSES --- */}
         <section className="mb-10 md:mb-12 text-left">
           <h2 className="text-lg md:text-xl font-bold text-[#111827] mb-4 md:mb-6 tracking-tight text-left">
             Recente analyses
