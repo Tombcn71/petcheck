@@ -2,6 +2,10 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
+import { Resend } from "resend"; // <--- 1. Importeer Resend
+
+// Initialiseer Resend met je API key uit je .env
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -44,7 +48,7 @@ export async function POST(req: Request) {
     const email = email_addresses[0]?.email_address || "";
     const fullName = `${first_name || ""} ${last_name || ""}`.trim();
 
-    // Maak de gebruiker aan in Neon en zet de plan_status expliciet op 'free' of 'trial'
+    // 2. Maak de gebruiker aan in Neon
     await sql`
       INSERT INTO user_settings (clerk_id, full_name, language, units, plan_status, created_at, updated_at)
       VALUES (${id}, ${fullName}, 'Nederlands', 'kg', 'free', NOW(), NOW())
@@ -54,6 +58,22 @@ export async function POST(req: Request) {
     console.log(
       `✅ Gebruiker ${id} succesvol opgeslagen in Neon met plan_status 'free'`,
     );
+
+    // 3. Schiet de gebruiker direct door naar Resend All Contacts!
+    if (email) {
+      try {
+        await resend.contacts.create({
+          email: email,
+          firstName: first_name || "Hondenbaasje",
+          lastName: last_name || "",
+          unsubscribed: false,
+        });
+        console.log(`✉️ Gebruiker ${email} succesvol toegevoegd aan Resend`);
+      } catch (resendError) {
+        // We loggen de fout, maar laten de webhook niet crashen als Resend even tegenstribbelt
+        console.error("❌ Fout bij toevoegen aan Resend:", resendError);
+      }
+    }
   }
 
   return new Response("Webhook succesvol", { status: 200 });
