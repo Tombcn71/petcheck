@@ -72,11 +72,11 @@ export async function POST(req: Request) {
 
         // Stap B: Het Custom Event afvuren om je 3-mail flow te starten
         await resend.events.send({
-          event: "user.created.", // Dit matcht met jouw ingevulde tekst in Resend
+          event: "user.created", // Dit matcht met jouw ingevulde tekst in Resend
           email: email,
         });
         console.log(
-          `🚀 Event 'user.created.' verzonden naar Resend voor ${email}!`,
+          `🚀 Event 'user.created' verzonden naar Resend voor ${email}!`,
         );
       } catch (resendError) {
         console.error("❌ Fout bij Resend:", resendError);
