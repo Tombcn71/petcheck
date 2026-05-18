@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
-import { Resend } from "resend"; // <--- 1. Importeer Resend
+import { Resend } from "resend";
 
 // Initialiseer Resend met je API key uit je .env
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -48,16 +48,21 @@ export async function POST(req: Request) {
     const email = email_addresses[0]?.email_address || "";
     const fullName = `${first_name || ""} ${last_name || ""}`.trim();
 
-    // 2. Maak de gebruiker aan in Neon
-    await sql`
-      INSERT INTO user_settings (clerk_id, full_name, language, units, plan_status, created_at, updated_at)
-      VALUES (${id}, ${fullName}, 'Nederlands', 'kg', 'free', NOW(), NOW())
-      ON CONFLICT (clerk_id) DO NOTHING;
-    `;
-
-    console.log(
-      `✅ Gebruiker ${id} succesvol opgeslagen in Neon met plan_status 'free'`,
-    );
+    // 2. Maak de gebruiker aan in Neon (Aangepast aan jouw exacte kolommen)
+    try {
+      await sql`
+        INSERT INTO user_settings (clerk_id, full_name, language, units, plan_status, updated_at)
+        VALUES (${id}, ${fullName}, 'Nederlands', 'kg', 'free', NOW())
+        ON CONFLICT (clerk_id) DO NOTHING;
+      `;
+      console.log(
+        `✅ Gebruiker ${id} succesvol opgeslagen in Neon met plan_status 'free'`,
+      );
+    } catch (dbError) {
+      console.error("❌ Database SQL Fout bij opslaan gebruiker:", dbError);
+      // We returnen een 500 als de database weigert, zodat Clerk weet dat het mislukt is
+      return new Response("Database opslag mislukt", { status: 500 });
+    }
 
     // 3. Schiet de gebruiker direct door naar Resend All Contacts!
     if (email) {
@@ -67,6 +72,8 @@ export async function POST(req: Request) {
           firstName: first_name || "Hondenbaasje",
           lastName: last_name || "",
           unsubscribed: false,
+          // Let op: als Resend om een audienceId vraagt, voeg die dan hieronder toe:
+          // audienceId: process.env.RESEND_AUDIENCE_ID!,
         });
         console.log(`✉️ Gebruiker ${email} succesvol toegevoegd aan Resend`);
       } catch (resendError) {
