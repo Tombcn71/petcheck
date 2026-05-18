@@ -58,16 +58,26 @@ export async function POST(req: Request) {
       return new Response("Database opslag mislukt", { status: 500 });
     }
 
-    // 2. Schiet door naar Resend (Zonder audienceId, helemaal volgens de nieuwe structuur!)
+    // 2. Schiet door naar Resend & Trigger de Automation Flow via het Custom Event!
     if (email) {
       try {
+        // Stap A: Contact aanmaken in Resend
         await resend.contacts.create({
           email: email,
           firstName: first_name || "Hondenbaasje",
           lastName: last_name || "",
-          unsubscribed: false, // Dit zorgt dat ze de status 'Subscribed' krijgen
+          unsubscribed: false,
         });
-        console.log(`✉️ Gebruiker ${email} succesvol aangemaakt in Resend!`);
+        console.log(`✉️ Gebruiker ${email} succesvol aangemaakt in Resend.`);
+
+        // Stap B: Het Custom Event afvuren om je 3-mail flow te starten
+        await resend.events.send({
+          event: "user.created.", // Dit matcht met jouw ingevulde tekst in Resend
+          email: email,
+        });
+        console.log(
+          `🚀 Event 'user.created.' verzonden naar Resend voor ${email}!`,
+        );
       } catch (resendError) {
         console.error("❌ Fout bij Resend:", resendError);
       }
