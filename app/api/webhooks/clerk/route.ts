@@ -4,7 +4,6 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
 import { Resend } from "resend";
 
-// Initialiseer Resend met je API key uit je .env
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
@@ -14,7 +13,6 @@ export async function POST(req: Request) {
     throw new Error("Voeg CLERK_WEBHOOK_SECRET toe aan je .env");
   }
 
-  // Header verificatie (Svix)
   const headerPayload = headers();
   const svix_id = (await headerPayload).get("svix-id");
   const svix_timestamp = (await headerPayload).get("svix-timestamp");
@@ -42,43 +40,36 @@ export async function POST(req: Request) {
 
   const sql = neon(process.env.DATABASE_URL!);
 
-  // Logica voor nieuwe gebruiker
   if (evt.type === "user.created") {
     const { id, first_name, last_name, email_addresses } = evt.data;
     const email = email_addresses[0]?.email_address || "";
     const fullName = `${first_name || ""} ${last_name || ""}`.trim();
 
-    // 2. Maak de gebruiker aan in Neon (Aangepast aan jouw exacte kolommen)
+    // 1. Sla op in database (Neon)
     try {
       await sql`
         INSERT INTO user_settings (clerk_id, full_name, language, units, plan_status, updated_at)
         VALUES (${id}, ${fullName}, 'Nederlands', 'kg', 'free', NOW())
         ON CONFLICT (clerk_id) DO NOTHING;
       `;
-      console.log(
-        `✅ Gebruiker ${id} succesvol opgeslagen in Neon met plan_status 'free'`,
-      );
+      console.log(`✅ Gebruiker ${id} succesvol opgeslagen in Neon.`);
     } catch (dbError) {
-      console.error("❌ Database SQL Fout bij opslaan gebruiker:", dbError);
-      // We returnen een 500 als de database weigert, zodat Clerk weet dat het mislukt is
+      console.error("❌ Database SQL Fout:", dbError);
       return new Response("Database opslag mislukt", { status: 500 });
     }
 
-    // 3. Schiet de gebruiker direct door naar Resend All Contacts!
+    // 2. Schiet door naar Resend (Zonder audienceId, helemaal volgens de nieuwe structuur!)
     if (email) {
       try {
         await resend.contacts.create({
           email: email,
           firstName: first_name || "Hondenbaasje",
           lastName: last_name || "",
-          unsubscribed: false,
-          // Let op: als Resend om een audienceId vraagt, voeg die dan hieronder toe:
-          // audienceId: process.env.RESEND_AUDIENCE_ID!,
+          unsubscribed: false, // Dit zorgt dat ze de status 'Subscribed' krijgen
         });
-        console.log(`✉️ Gebruiker ${email} succesvol toegevoegd aan Resend`);
+        console.log(`✉️ Gebruiker ${email} succesvol aangemaakt in Resend!`);
       } catch (resendError) {
-        // We loggen de fout, maar laten de webhook niet crashen als Resend even tegenstribbelt
-        console.error("❌ Fout bij toevoegen aan Resend:", resendError);
+        console.error("❌ Fout bij Resend:", resendError);
       }
     }
   }
