@@ -16,18 +16,31 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const dogName = searchParams.get("name") || "mijn hond";
+    const dogId = searchParams.get("dogId");
 
     // 2. Database query: Haal ALLE recente afwijkingen op (is_ok = false)
     const sql = neon(process.env.DATABASE_URL!);
 
     // We gebruiken geen DISTINCT omdat we ELKE unieke scan willen zien, ook als het 2x ogen is
-    const dossierItems = await sql`
-      SELECT tool_id, summary, image_url, created_at 
-      FROM scans 
-      WHERE user_id = ${userId} AND is_ok = false 
-      ORDER BY created_at DESC 
-      LIMIT 20
-    `;
+    let dossierItems;
+    
+    if (dogId) {
+      dossierItems = await sql`
+        SELECT tool_id, summary, image_url, created_at 
+        FROM scans 
+        WHERE user_id = ${userId} AND dog_id = ${dogId} AND is_ok = false 
+        ORDER BY created_at DESC 
+        LIMIT 20
+      `;
+    } else {
+      dossierItems = await sql`
+        SELECT tool_id, summary, image_url, created_at 
+        FROM scans 
+        WHERE user_id = ${userId} AND is_ok = false 
+        ORDER BY created_at DESC 
+        LIMIT 20
+      `;
+    }
 
     // DEBUG: Check je terminal om te zien of hier 2 of 3 staat!
     console.log(
