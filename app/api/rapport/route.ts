@@ -3,12 +3,10 @@ import { GoogleGenAI } from "@google/genai";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
 
-// Initialisatie van de AI met de Gemini 3 Flash SDK
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function GET(req: Request) {
   try {
-    // 1. Auth check
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
@@ -18,35 +16,23 @@ export async function GET(req: Request) {
     const dogName = searchParams.get("name") || "mijn hond";
     const dogId = searchParams.get("dogId");
 
-    // 2. Database query: Haal ALLE recente afwijkingen op (is_ok = false)
     const sql = neon(process.env.DATABASE_URL!);
 
-    // We gebruiken geen DISTINCT omdat we ELKE unieke scan willen zien, ook als het 2x ogen is
-    let dossierItems;
-    
-    if (dogId) {
-      dossierItems = await sql`
-        SELECT tool_id, summary, image_url, created_at 
-        FROM scans 
-        WHERE user_id = ${userId} AND dog_id = ${dogId} AND is_ok = false 
-        ORDER BY created_at DESC 
-        LIMIT 20
-      `;
-    } else {
-      dossierItems = await sql`
-        SELECT tool_id, summary, image_url, created_at 
-        FROM scans 
-        WHERE user_id = ${userId} AND is_ok = false 
-        ORDER BY created_at DESC 
-        LIMIT 20
-      `;
-    }
-
-    // DEBUG: Check je terminal om te zien of hier 2 of 3 staat!
-    console.log(
-      `Aantal gevonden afwijkingen voor ${dogName}:`,
-      dossierItems.length,
-    );
+    const dossierItems = dogId
+      ? await sql`
+          SELECT tool_id, summary, image_url, created_at 
+          FROM scans 
+          WHERE user_id = ${userId} AND dog_id = ${dogId} AND is_ok = false 
+          ORDER BY created_at DESC 
+          LIMIT 20
+        `
+      : await sql`
+          SELECT tool_id, summary, image_url, created_at 
+          FROM scans 
+          WHERE user_id = ${userId} AND is_ok = false 
+          ORDER BY created_at DESC 
+          LIMIT 20
+        `;
 
     if (!dossierItems || dossierItems.length === 0) {
       return NextResponse.json({
@@ -55,12 +41,10 @@ export async function GET(req: Request) {
       });
     }
 
-    // Voorbereiden van de data voor de AI
     const bevindingen = dossierItems
       .map((item) => `- [Onderdeel: ${item.tool_id}]: ${item.summary}`)
       .join("\n");
 
-    // 3. AI Brief Genereren
     const result = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
@@ -95,7 +79,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       brief: briefTekst,
-      details: dossierItems, // Hier zitten de image_url's in
+      details: dossierItems,
     });
   } catch (error: any) {
     console.error("Rapport API Error:", error);

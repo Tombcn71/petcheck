@@ -128,7 +128,10 @@ export const RapportPDF = ({ brief, details, dogName }: Props) => (
 
               {/* FIX 2: Check of de URL bestaat en forceer rendering */}
               {item?.image_url ? (
-                <Image src={item.image_url} style={styles.photo} />
+                <Image
+                  src={item.image_url.split("?")[0]}
+                  style={styles.photo}
+                />
               ) : (
                 <View style={styles.noPhotoBox}>
                   <Text style={{ fontSize: 8, color: "#94a3b8" }}>

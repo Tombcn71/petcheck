@@ -6,7 +6,6 @@ import { useUser } from "@clerk/nextjs";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Activity,
-  Phone,
   ChevronRight,
   Loader2,
   FileDown,
@@ -18,42 +17,32 @@ import {
   Info,
   Plus,
   Zap,
+  Camera,
 } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RapportPDF } from "@/components/RapportPDF";
 import { Progress } from "@/components/ui/progress";
-import { PricingModal } from "@/components/PricingModal"; // Zorg dat dit pad klopt met jouw mappenstructuur
+import { PricingModal } from "@/components/PricingModal";
 import { TRIAL_DAYS } from "../trial-config";
 
-// --- Dynamische Trial Logica Functie ---
 function getTrialStatus(
   createdAt: string | Date | number,
   trialEndsAt?: string,
 ) {
   const start = new Date(createdAt).getTime();
   const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
-
   const end = trialEndsAt
     ? new Date(trialEndsAt).getTime()
     : start + trialDurationMs;
   const now = Date.now();
-
   const totalDuration = end - start;
   const elapsed = now - start;
-
   const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   const msLeft = Math.max(0, end - now);
   const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
-
-  return {
-    progress,
-    daysLeft,
-    isExpired: now > end,
-    msLeft,
-  };
+  return { progress, daysLeft, isExpired: now > end, msLeft };
 }
 
-// --- Interfaces ---
 interface DossierItem {
   id: string;
   tool_id: string;
@@ -136,6 +125,8 @@ function DashboardContent() {
   useEffect(() => {
     async function initDashboard() {
       if (!isLoaded) return;
+      setRapportData(null);
+      setDossierAlerts([]);
       setLoading(true);
 
       try {
@@ -200,8 +191,9 @@ function DashboardContent() {
   const genereerRapportData = async () => {
     setIsGenerating(true);
     try {
+      const activeDogId = dogIdFromUrl || dog?.id;
       const res = await fetch(
-        `/api/rapport?name=${dogName}${dogIdFromUrl ? `&dogId=${dogIdFromUrl}` : ""}`,
+        `/api/rapport?name=${dogName}&dogId=${activeDogId}`,
       );
       const data = await res.json();
       setRapportData(data);
@@ -222,36 +214,32 @@ function DashboardContent() {
   return (
     <main className="min-h-screen bg-white p-4 sm:p-6 md:p-10 lg:p-12 font-jakarta antialiased text-[#111827]">
       <div className="w-full max-w-4xl ml-0 text-left">
-        {/* --- TRIAL PROGRESS BAR --- */}
         {isLoaded && !isPro && (
-          <div className="mb-10 p-6 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 shadow-sm transition-all text-left">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <div className="bg-[#4FC3F7] p-1.5 rounded-lg shadow-sm">
-                  <Zap size={14} className="fill-white text-white" />
-                </div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-[#1A1A2E]">
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="bg-[#4FC3F7] p-1 rounded-lg shrink-0">
+                <Zap size={12} className="fill-white text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#1A1A2E] mb-1">
                   {trial.isExpired
                     ? "Trial verlopen"
-                    : TRIAL_DAYS < 1
-                      ? `Trial Status: Actief (Kort testen)`
-                      : `Trial Status: ${trial.daysLeft} ${trial.daysLeft === 1 ? "dag" : "dagen"} over`}
-                </h4>
+                    : `Trial: ${trial.daysLeft} ${trial.daysLeft === 1 ? "dag" : "dagen"} over`}
+                </p>
+                <Progress
+                  value={Math.max(5, trial.progress)}
+                  className={`h-1.5 border border-white shadow-inner ${trial.progress > 80 ? "[&>div]:bg-rose-500" : "[&>div]:bg-[#4FC3F7]"}`}
+                />
               </div>
-              <button
-                onClick={() => setShowPricing(true)}
-                className="text-[10px] font-black uppercase tracking-widest bg-[#1A1A2E] text-white px-4 py-2 rounded-full hover:bg-[#4FC3F7] transition-colors">
-                Upgrade naar Pro
-              </button>
             </div>
-            <Progress
-              value={Math.max(5, trial.progress)}
-              className={`h-2.5 border border-white shadow-inner ${trial.progress > 80 ? "[&>div]:bg-rose-500" : "[&>div]:bg-[#4FC3F7]"}`}
-            />
+            <button
+              onClick={() => setShowPricing(true)}
+              className="text-[9px] font-black uppercase tracking-widest bg-[#1A1A2E] text-white px-3 py-1.5 rounded-lg hover:bg-[#4FC3F7] transition-colors shrink-0 text-center">
+              Upgrade naar Pro
+            </button>
           </div>
         )}
 
-        {/* --- GEDEELDE PRICING MODAL COMPONENT --- */}
         <PricingModal
           isOpen={showPricing}
           onClose={() => setShowPricing(false)}
@@ -259,37 +247,31 @@ function DashboardContent() {
         />
 
         {/* HONDEN SWITCHER */}
-        <div className="flex gap-4 mb-8 border-b border-slate-100 pb-6 overflow-x-auto no-scrollbar items-center text-left">
+        <div className="flex gap-3 mb-6 border-b border-slate-100 pb-4 overflow-x-auto no-scrollbar items-center text-left">
           {allDogs.map((d) => (
             <button
               key={d.id}
               onClick={() => router.push(`/dashboard?dogId=${d.id}`)}
-              className={`flex flex-col items-center gap-2 transition-all shrink-0 ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border shrink-0 ${
                 String(dogIdFromUrl) === String(d.id) ||
                 (!dogIdFromUrl && allDogs[0]?.id === d.id)
-                  ? "opacity-100 scale-105"
-                  : "opacity-40 hover:opacity-70"
+                  ? "bg-slate-50 border-slate-200 opacity-100"
+                  : "bg-white border-transparent opacity-50 hover:opacity-80"
               }`}>
-              <div
-                className={`h-16 w-16 md:h-20 md:w-20 rounded-[1.5rem] overflow-hidden border-4 shadow-md transition-all ${
-                  String(dogIdFromUrl) === String(d.id) ||
-                  (!dogIdFromUrl && allDogs[0]?.id === d.id)
-                    ? "border-[#4FC3F7]"
-                    : "border-white"
-                }`}>
+              <div className="h-8 w-8 rounded-lg overflow-hidden border border-slate-200 shadow-sm shrink-0">
                 {d.image_url ? (
                   <img
-                    src={`${d.image_url}?v=${Date.now()}`}
+                    src={d.image_url}
                     alt={d.name}
                     className="object-cover w-full h-full"
                   />
                 ) : (
-                  <div className="bg-slate-100 w-full h-full flex items-center justify-center text-xl">
+                  <div className="bg-slate-100 w-full h-full flex items-center justify-center text-xs">
                     🐶
                   </div>
                 )}
               </div>
-              <span className="text-[10px] font-black uppercase tracking-tighter">
+              <span className="text-[11px] font-bold text-[#111827]">
                 {d.name}
               </span>
             </button>
@@ -297,60 +279,84 @@ function DashboardContent() {
           {allDogs.length < 3 && (
             <Link
               href="/onboarding"
-              className="flex flex-col items-center gap-2 shrink-0 group">
-              <div className="h-16 w-16 md:h-20 md:w-20 rounded-[1.5rem] border-4 border-dashed border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#4FC3F7] transition-all text-slate-300">
-                <Plus size={32} strokeWidth={2.5} />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-[#4FC3F7]">
-                Voeg toe
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 hover:border-[#4FC3F7] transition-all shrink-0 text-slate-400 group">
+              <Plus
+                size={14}
+                strokeWidth={2.5}
+                className="group-hover:text-[#4FC3F7]"
+              />
+              <span className="text-[11px] font-bold group-hover:text-[#4FC3F7]">
+                Hond toevoegen
               </span>
             </Link>
           )}
         </div>
 
         {/* HEADER */}
-        <header className="mb-8 md:mb-12 border-b border-slate-100 pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
-          <div className="flex items-center gap-5 md:gap-8">
+        <header className="mb-8 md:mb-10 border-b border-slate-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
+          <div className="flex items-center gap-4 md:gap-6">
             <div
               key={dog?.image_url}
-              className="h-16 w-16 md:h-24 md:w-24 rounded-[2rem] overflow-hidden shadow-xl border-4 border-[#1A1A2E] shrink-0 bg-slate-50 flex items-center justify-center">
+              className="h-14 w-14 md:h-18 md:w-18 rounded-2xl overflow-hidden shadow-md border-2 border-[#1A1A2E] shrink-0 bg-slate-50 flex items-center justify-center">
               {dog?.image_url ? (
                 <img
-                  src={`${dog.image_url}?v=${Date.now()}`}
+                  src={dog.image_url}
                   alt={dogName}
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <span className="text-4xl">🐶</span>
+                <span className="text-2xl">🐶</span>
               )}
             </div>
             <div className="flex flex-col">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#4FC3F7] mb-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#4FC3F7] mb-0.5">
                 Welkom terug, {user?.firstName}
               </p>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-[#111827] uppercase italic leading-none mb-3">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#111827] uppercase italic leading-none mb-2">
                 {dogName}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-left">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-left">
                 {dog?.age && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                     {dog.age} jaar
                   </span>
                 )}
                 {dog?.gender && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                     {dog.gender}
                   </span>
                 )}
                 {dog?.weight && (
-                  <span className="text-[11px] font-bold text-[#111827] bg-slate-100 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                     {dog.weight} kg
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="shrink-0">
+
+          <div className="flex items-center gap-3 shrink-0">
+            {!loading && (
+              <>
+                {trial.isExpired && !isPro ? (
+                  <button
+                    onClick={() => setShowPricing(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all">
+                    <Camera size={14} strokeWidth={2.5} />
+                    <span>Nieuwe scan</span>
+                  </button>
+                ) : (
+                  <Link
+                    href={`/dashboard/scan?dogId=${dogIdFromUrl || allDogs[0]?.id}`}>
+                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all">
+                      <Camera size={14} strokeWidth={2.5} />
+                      <span>Nieuwe scan</span>
+                    </button>
+                  </Link>
+                )}
+              </>
+            )}
+
             {rapportData ? (
               <PDFDownloadLink
                 document={
@@ -361,39 +367,39 @@ function DashboardContent() {
                   />
                 }
                 fileName={`Rapport_${dogName}.pdf`}
-                className="flex items-center gap-2 px-6 py-3 bg-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-[4px_4px_0_0_#065f46]">
-                <CheckCircle2 size={16} /> Download Rapport
+                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-wider text-white shadow-sm hover:bg-emerald-600">
+                <CheckCircle2 size={14} /> Rapport
               </PDFDownloadLink>
             ) : (
               <button
                 onClick={genereerRapportData}
-                disabled={isGenerating}
-                className="flex items-center gap-2 px-6 py-3 bg-[#1A1A2E] rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-[4px_4px_0_0_#4FC3F7] disabled:opacity-50">
+                disabled={isGenerating || loading}
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#1A1A2E] rounded-xl text-[10px] font-black uppercase tracking-wider text-white shadow-sm hover:bg-slate-800 disabled:opacity-50">
                 {isGenerating ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  <FileDown size={16} />
+                  <FileDown size={14} />
                 )}
-                {isGenerating ? "Genereren..." : "PDF Rapport"}
+                {isGenerating ? "Laden..." : "PDF Rapport"}
               </button>
             )}
           </div>
         </header>
 
         {!loading && (
-          <section className="mb-10 text-left">
+          <section className="mb-8 text-left">
             {dossierAlerts.length > 0 ? (
-              <div className="p-4 md:p-5 rounded-2xl bg-orange-50 border border-orange-200 flex items-start gap-4 shadow-sm">
-                <AlertTriangle className="text-orange-600 shrink-0" size={24} />
-                <p className="text-sm md:text-base text-orange-900 font-medium">
+              <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3 shadow-sm">
+                <AlertTriangle className="text-orange-600 shrink-0" size={20} />
+                <p className="text-xs md:text-sm text-orange-900 font-medium">
                   Het lijkt erop dat <strong>{dogName}</strong> ergens last van
                   heeft. Laat dit beoordelen door een arts.
                 </p>
               </div>
             ) : (
-              <div className="p-4 md:p-5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-4 shadow-sm">
-                <ShieldCheck className="text-blue-600 shrink-0" size={24} />
-                <p className="text-sm md:text-base text-blue-900 font-medium">
+              <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3 shadow-sm">
+                <ShieldCheck className="text-blue-600 shrink-0" size={20} />
+                <p className="text-xs md:text-sm text-blue-900 font-medium">
                   Alles ziet er goed uit bij <strong>{dogName}</strong>!
                 </p>
               </div>
@@ -401,17 +407,16 @@ function DashboardContent() {
           </section>
         )}
 
-        {/* --- RECENTE ANALYSES --- */}
-        <section className="mb-10 md:mb-12 text-left">
-          <h2 className="text-lg md:text-xl font-bold text-[#111827] mb-4 md:mb-6 tracking-tight text-left">
+        <section className="mb-8 md:mb-10 text-left">
+          <h2 className="text-md md:text-lg font-bold text-[#111827] mb-3 md:mb-4 tracking-tight text-left">
             Recente analyses
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {loading ? (
-              <Loader2 className="animate-spin text-[#4FC3F7]" size={28} />
+              <Loader2 className="animate-spin text-[#4FC3F7]" size={24} />
             ) : dossierAlerts.length === 0 ? (
-              <div className="p-5 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 bg-slate-50/50 flex items-center gap-3 italic text-sm text-left">
-                <Info size={18} className="text-slate-400" /> Geen actieve
+              <div className="p-4 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-slate-50/50 flex items-center gap-3 italic text-xs text-left">
+                <Info size={16} className="text-slate-400" /> Geen actieve
                 meldingen gevonden.
               </div>
             ) : (
@@ -419,22 +424,22 @@ function DashboardContent() {
                 <Link
                   key={item.id}
                   href={`/dashboard/dossier?dogId=${dogIdFromUrl}&tab=${item.tool_id}#${item.id}`}
-                  className="group flex items-center justify-between p-3.5 md:p-5 bg-white rounded-2xl border-2 border-slate-300 hover:border-[#4FC3F7] transition-all">
-                  <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
-                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-[#4FC3F7] flex items-center justify-center text-white shrink-0">
-                      <Activity size={24} strokeWidth={2.5} />
+                  className="group flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 hover:border-[#4FC3F7] transition-all">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 border border-slate-100">
+                      <Activity size={16} strokeWidth={2.5} />
                     </div>
                     <div className="flex flex-col md:flex-row md:items-baseline md:gap-2 min-w-0 overflow-hidden text-left">
-                      <span className="text-sm md:text-lg font-bold text-[#111827] whitespace-nowrap">
+                      <span className="text-xs md:text-sm font-bold text-[#111827] whitespace-nowrap">
                         {dossierVertalingen[item.tool_id] || item.tool_id}:
                       </span>
-                      <span className="text-xs md:text-base font-semibold text-red-600 truncate block">
+                      <span className="text-xs md:text-sm font-semibold text-red-600 truncate block">
                         {item.summary}
                       </span>
                     </div>
                   </div>
                   <ChevronRight
-                    size={18}
+                    size={16}
                     className="text-slate-300 group-hover:text-[#4FC3F7] shrink-0 ml-2"
                   />
                 </Link>
@@ -443,34 +448,34 @@ function DashboardContent() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-10 md:mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-10">
           <Link
             href={`/dashboard/vaccinaties?dogId=${dogIdFromUrl}`}
             className="block group">
             <div
-              className={`p-5 md:p-6 rounded-2xl border-2 transition-all h-full text-left ${heeftVerlopenVaccinatie ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-300 group-hover:border-[#4FC3F7]"}`}>
-              <div className="flex items-center gap-3 mb-6">
+              className={`p-4 md:p-5 rounded-xl border transition-all h-full text-left ${!loading && heeftVerlopenVaccinatie ? "bg-red-50/50 border-red-200" : "bg-slate-50/50 border-slate-200 group-hover:border-[#4FC3F7]"}`}>
+              <div className="flex items-center gap-2.5 mb-4">
                 <div
-                  className={`h-10 w-10 md:h-12 md:w-12 rounded-xl flex items-center justify-center text-white ${heeftVerlopenVaccinatie ? "bg-red-500" : "bg-[#4FC3F7]"}`}>
-                  <Syringe size={22} />
+                  className={`h-8 w-8 rounded-lg flex items-center justify-center text-white ${!loading && heeftVerlopenVaccinatie ? "bg-red-500" : "bg-[#4FC3F7]"}`}>
+                  <Syringe size={16} />
                 </div>
-                <h3 className="font-bold text-left">Vaccinaties</h3>
+                <h3 className="text-sm font-bold text-left">Vaccinaties</h3>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+              <div className="bg-white p-3 rounded-lg border border-slate-100 flex items-center justify-between shadow-sm">
                 <div className="text-left">
-                  <p className="text-[9px] font-black uppercase text-slate-400">
+                  <p className="text-[8px] font-black uppercase text-slate-400">
                     Volgende
                   </p>
-                  <p className="text-xs md:text-sm font-bold truncate">
+                  <p className="text-xs font-bold truncate">
                     {eerstvolgendeVac ? eerstvolgendeVac.type : "Geen planning"}
                   </p>
                 </div>
                 <div className="text-right ml-2 text-left">
-                  <p className="text-[9px] font-black uppercase text-slate-400">
+                  <p className="text-[8px] font-black uppercase text-slate-400">
                     Datum
                   </p>
                   <p
-                    className={`text-xs md:text-sm font-bold ${heeftVerlopenVaccinatie ? "text-red-600" : "text-[#111827]"}`}>
+                    className={`text-xs font-bold ${!loading && heeftVerlopenVaccinatie ? "text-red-600" : "text-[#111827]"}`}>
                     {eerstvolgendeVac
                       ? new Date(
                           eerstvolgendeVac.datum_verloop,
@@ -484,51 +489,40 @@ function DashboardContent() {
           <Link
             href={`/dashboard/medicatie?dogId=${dogIdFromUrl}`}
             className="block group">
-            <div className="p-5 md:p-6 bg-slate-50 rounded-2xl border-2 border-slate-300 group-hover:border-[#4FC3F7] transition-all h-full text-left">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-[#4FC3F7] flex items-center justify-center text-white">
-                  <Pill size={22} />
+            <div className="p-4 md:p-5 bg-slate-50/50 rounded-xl border border-slate-200 group-hover:border-[#4FC3F7] transition-all h-full text-left">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-[#4FC3F7] flex items-center justify-center text-white">
+                  <Pill size={16} />
                 </div>
-                <h3 className="font-bold text-left">Medicatie</h3>
+                <h3 className="text-sm font-bold text-left">Medicatie</h3>
               </div>
               {actieveMedicatie ? (
-                <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                <div className="bg-white p-3 rounded-lg border border-slate-100 flex items-center justify-between shadow-sm">
                   <div className="text-left">
-                    <p className="text-[9px] font-black uppercase text-slate-400">
+                    <p className="text-[8px] font-black uppercase text-slate-400">
                       Lopende kuur
                     </p>
-                    <p className="text-xs md:text-sm font-bold text-left">
+                    <p className="text-xs font-bold text-left">
                       {actieveMedicatie.naam}
                     </p>
                   </div>
                   <div className="text-right ml-2 text-left">
-                    <p className="text-[9px] font-black uppercase text-slate-400">
+                    <p className="text-[8px] font-black uppercase text-slate-400">
                       Schema
                     </p>
-                    <p className="text-[10px] font-bold text-[#4FC3F7]">
+                    <p className="text-[9px] font-bold text-[#4FC3F7]">
                       {actieveMedicatie.frequentie}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-[74px] border-2 border-dashed border-slate-300 rounded-xl bg-white/50 text-slate-400 italic text-xs text-left">
+                <div className="flex items-center justify-center h-[54px] border border-dashed border-slate-200 rounded-lg bg-white/50 text-slate-400 italic text-xs text-left">
                   Geen actieve kuren
                 </div>
               )}
             </div>
           </Link>
         </div>
-
-        <footer className="flex flex-col sm:flex-row gap-3 md:gap-4 border-t border-slate-200 pt-8 mb-12 text-left">
-          <Link
-            href={`/dashboard/dossier?dogId=${dogIdFromUrl}`}
-            className="flex-[2] flex items-center justify-center p-4 bg-[#111827] text-white rounded-xl font-bold hover:bg-[#4FC3F7]">
-            Open dossier
-          </Link>
-          <button className="flex-1 flex items-center justify-center p-4 bg-white border-2 border-[#111827] text-[#111827] rounded-xl font-bold hover:bg-red-50">
-            <Phone size={18} className="mr-2" /> Contact
-          </button>
-        </footer>
       </div>
     </main>
   );
