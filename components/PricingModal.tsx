@@ -25,14 +25,15 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 bg-white/85 backdrop-blur-xl flex items-center justify-center z-[999999] p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full relative shadow-[0_25px_60px_-15px_rgba(0,0,0,0.1)] border-4 border-[#4FC3F7] overflow-hidden transform animate-in zoom-in-95 duration-200">
+      {/* Container: w-[95vw] voor mobiel, max-w-md voor desktop */}
+      <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 w-[95vw] max-w-md max-h-[90vh] overflow-y-auto relative shadow-[0_25px_60px_-15px_rgba(0,0,0,0.1)] border-4 border-[#4FC3F7] transform animate-in zoom-in-95 duration-200">
         {/* Achtergrond branding gloed */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#4FC3F7]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Sluitknop */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full transition-colors"
+          className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full transition-colors z-10"
           type="button">
           <X size={20} strokeWidth={3} />
         </button>
@@ -55,7 +56,7 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
             Ontgrendel Pro
           </h2>
 
-          {/* Early Bird Pitch */}
+          {/* Early Bird Pitch - TERUGGEPLAATST */}
           <p className="text-xs text-slate-500 mt-2 font-bold max-w-sm mx-auto leading-relaxed">
             🚀 Word een van onze{" "}
             <span className="text-[#4FC3F7]">Early Adopters</span>! Help ons
@@ -66,61 +67,30 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
         {/* Dynamische USP's */}
         <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100 space-y-2.5">
-          <div className="flex items-start gap-2.5 text-left">
-            <CheckCircle2
-              size={16}
-              className="text-[#4FC3F7] shrink-0 mt-0.5"
-            />
-            <span className="text-xs font-bold text-slate-700">
-              Toegang voor 3 honden
-            </span>
-          </div>
-          <div className="flex items-start gap-2.5 text-left">
-            <CheckCircle2
-              size={16}
-              className="text-[#4FC3F7] shrink-0 mt-0.5"
-            />
-            <span className="text-xs font-bold text-slate-700">
-              Onbeperkte AI-gezondheidsscans
-            </span>
-          </div>
-          <div className="flex items-start gap-2.5 text-left">
-            <CheckCircle2
-              size={16}
-              className="text-[#4FC3F7] shrink-0 mt-0.5"
-            />
-            <span className="text-xs font-bold text-slate-700">
-              Historisch medisch dossier
-            </span>
-          </div>
-          <div className="flex items-start gap-2.5 text-left">
-            <CheckCircle2
-              size={16}
-              className="text-[#4FC3F7] shrink-0 mt-0.5"
-            />
-            <span className="text-xs font-bold text-slate-700">
-              PDF rapport voor de dierenarts
-            </span>
-          </div>
-          <div className="flex items-start gap-2.5 text-left">
-            <CheckCircle2
-              size={16}
-              className="text-[#4FC3F7] shrink-0 mt-0.5"
-            />
-            <span className="text-xs font-bold text-slate-700">
-              Direct resultaat in 30 seconden
-            </span>
-          </div>
+          {[
+            "Toegang voor 3 honden",
+            "Onbeperkte AI-gezondheidsscans",
+            "Historisch medisch dossier",
+            "PDF rapport voor de dierenarts",
+            "Direct resultaat in 30 seconden",
+          ].map((text, i) => (
+            <div key={i} className="flex items-start gap-2.5 text-left">
+              <CheckCircle2
+                size={16}
+                className="text-[#4FC3F7] shrink-0 mt-0.5"
+              />
+              <span className="text-xs font-bold text-slate-700">{text}</span>
+            </div>
+          ))}
         </div>
 
         {/* De Plannen */}
         <div className="space-y-3.5">
-          {/* Maandelijks Plan */}
           <button
-            onClick={() => {
-              window.location.href =
-                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0";
-            }}
+            onClick={() =>
+              (window.location.href =
+                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0")
+            }
             className="w-full group bg-white border-2 border-slate-200 p-4 rounded-2xl hover:border-[#4FC3F7] hover:bg-slate-50/50 transition-all text-left flex items-center justify-between outline-none">
             <div>
               <span className="font-black uppercase tracking-tight text-xs text-slate-400 block mb-0.5">
@@ -138,18 +108,15 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
             </div>
           </button>
 
-          {/* Jaarlijks Plan */}
           <button
-            onClick={() => {
-              window.location.href =
-                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW";
-            }}
-            className="w-full group bg-sky-50 border-2 border-[#4FC3F7] p-4 rounded-2xl hover:scale-[1.01] hover:shadow-xl hover:shadow-sky-200/50 transition-all text-left relative overflow-hidden outline-none">
-            {/* Early bird badge */}
+            onClick={() =>
+              (window.location.href =
+                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW")
+            }
+            className="w-full group bg-sky-50 border-2 border-[#4FC3F7] p-4 rounded-2xl hover:scale-[1.01] transition-all text-left relative overflow-hidden outline-none">
             <span className="absolute top-0 right-0 bg-[#4FC3F7] text-[#1A1A2E] text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter shadow-sm flex items-center gap-1">
               <Sparkles size={10} /> Early Bird -50%
             </span>
-
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-black uppercase tracking-tight text-xs text-[#4FC3F7] block mb-0.5">
@@ -171,7 +138,7 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
           </button>
         </div>
 
-        {/* Privacy & Controle Boodschap */}
+        {/* Privacy & Controle */}
         <div className="mt-6 pt-5 border-t border-slate-100 text-center">
           <div className="flex items-center justify-center gap-1.5 text-slate-400 mb-1">
             <ShieldCheck size={13} className="text-slate-400" />
