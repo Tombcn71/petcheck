@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   ShieldCheck,
   Info,
-  Plus,
   Zap,
   Camera,
 } from "lucide-react";
@@ -23,6 +22,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RapportPDF } from "@/components/RapportPDF";
 import { Progress } from "@/components/ui/progress";
 import { PricingModal } from "@/components/PricingModal";
+import { DogSwitcher } from "@/components/DogSwitcher";
 import { TRIAL_DAYS } from "../trial-config";
 
 function getTrialStatus(
@@ -150,6 +150,13 @@ function DashboardContent() {
         if (actieveHond) {
           setDog({ ...actieveHond });
 
+          // VANGRAIL: dwing de URL naar het juiste ID als deze nog leeg was
+          if (!dogIdFromUrl) {
+            router.replace(`/dashboard?dogId=${actieveHond.id}`, {
+              scroll: false,
+            });
+          }
+
           const idToFetch = actieveHond.id;
           const [scansRes, vacRes, medRes] = await Promise.all([
             fetch(
@@ -186,7 +193,7 @@ function DashboardContent() {
     }
 
     initDashboard();
-  }, [isLoaded, dogIdFromUrl]);
+  }, [isLoaded, dogIdFromUrl, router]);
 
   const genereerRapportData = async () => {
     setIsGenerating(true);
@@ -243,54 +250,22 @@ function DashboardContent() {
         <PricingModal
           isOpen={showPricing}
           onClose={() => setShowPricing(false)}
-          dogId={dogIdFromUrl}
+          dogId={dogIdFromUrl || dog?.id}
         />
 
-        {/* HONDEN SWITCHER */}
-        <div className="flex gap-3 mb-6 border-b border-slate-100 pb-4 overflow-x-auto no-scrollbar items-center text-left">
-          {allDogs.map((d) => (
-            <button
-              key={d.id}
-              onClick={() => router.push(`/dashboard?dogId=${d.id}`)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border shrink-0 ${
-                String(dogIdFromUrl) === String(d.id) ||
-                (!dogIdFromUrl && allDogs[0]?.id === d.id)
-                  ? "bg-slate-50 border-slate-200 opacity-100"
-                  : "bg-white border-transparent opacity-50 hover:opacity-80"
-              }`}>
-              <div className="h-8 w-8 rounded-lg overflow-hidden border border-slate-200 shadow-sm shrink-0">
-                {d.image_url ? (
-                  <img
-                    src={d.image_url}
-                    alt={d.name}
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <div className="bg-slate-100 w-full h-full flex items-center justify-center text-xs">
-                    🐶
-                  </div>
-                )}
-              </div>
-              <span className="text-[11px] font-bold text-[#111827]">
-                {d.name}
-              </span>
-            </button>
-          ))}
-          {allDogs.length < 3 && (
-            <Link
-              href="/onboarding"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 hover:border-[#4FC3F7] transition-all shrink-0 text-slate-400 group">
-              <Plus
-                size={14}
-                strokeWidth={2.5}
-                className="group-hover:text-[#4FC3F7]"
-              />
-              <span className="text-[11px] font-bold group-hover:text-[#4FC3F7]">
-                Hond toevoegen
-              </span>
-            </Link>
-          )}
-        </div>
+        {/* 
+          COMPACTE HONDEN SWITCHER SECIE
+          Dit zet de switcher helemaal strak bovenaan de pagina content neer, 
+          met een subtiele scheidingslijn, ideaal voor mobiel én desktop.
+        */}
+        {allDogs.length > 1 && (
+          <div className="mb-6 pb-2 border-b border-slate-100">
+            <DogSwitcher
+              allDogs={allDogs}
+              dogIdFromUrl={dogIdFromUrl || dog?.id}
+            />
+          </div>
+        )}
 
         {/* HEADER */}
         <header className="mb-8 md:mb-10 border-b border-slate-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
@@ -347,7 +322,7 @@ function DashboardContent() {
                   </button>
                 ) : (
                   <Link
-                    href={`/dashboard/scan?dogId=${dogIdFromUrl || allDogs[0]?.id}`}>
+                    href={`/dashboard/scan?dogId=${dogIdFromUrl || dog?.id}`}>
                     <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-[10px] tracking-wider shadow-sm transition-all">
                       <Camera size={14} strokeWidth={2.5} />
                       <span>Nieuwe scan</span>
@@ -423,7 +398,7 @@ function DashboardContent() {
               dossierAlerts.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/dashboard/dossier?dogId=${dogIdFromUrl}&tab=${item.tool_id}#${item.id}`}
+                  href={`/dashboard/dossier?dogId=${dogIdFromUrl || dog?.id}&tab=${item.tool_id}#${item.id}`}
                   className="group flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 hover:border-[#4FC3F7] transition-all">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 border border-slate-100">
@@ -450,7 +425,7 @@ function DashboardContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-10">
           <Link
-            href={`/dashboard/vaccinaties?dogId=${dogIdFromUrl}`}
+            href={`/dashboard/vaccinaties?dogId=${dogIdFromUrl || dog?.id}`}
             className="block group">
             <div
               className={`p-4 md:p-5 rounded-xl border transition-all h-full text-left ${!loading && heeftVerlopenVaccinatie ? "bg-red-50/50 border-red-200" : "bg-slate-50/50 border-slate-200 group-hover:border-[#4FC3F7]"}`}>
@@ -487,7 +462,7 @@ function DashboardContent() {
             </div>
           </Link>
           <Link
-            href={`/dashboard/medicatie?dogId=${dogIdFromUrl}`}
+            href={`/dashboard/medicatie?dogId=${dogIdFromUrl || dog?.id}`}
             className="block group">
             <div className="p-4 md:p-5 bg-slate-50/50 rounded-xl border border-slate-200 group-hover:border-[#4FC3F7] transition-all h-full text-left">
               <div className="flex items-center gap-2.5 mb-4">
