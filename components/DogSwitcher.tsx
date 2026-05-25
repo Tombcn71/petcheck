@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
 interface Dog {
@@ -21,8 +21,8 @@ export function DogSwitcher({ allDogs = [], dogIdFromUrl }: DogSwitcherProps) {
   const pathname = usePathname();
 
   return (
-    /* flex-row zorgt dat ze netjes horizontaal in de header staan */
     <div className="flex flex-row flex-wrap items-center gap-3">
+      {/* 1. Toon altijd alle aanwezige avatars */}
       {allDogs.map((d) => {
         const isActive =
           String(dogIdFromUrl) === String(d.id) ||
@@ -56,6 +56,7 @@ export function DogSwitcher({ allDogs = [], dogIdFromUrl }: DogSwitcherProps) {
         );
       })}
 
+      {/* 2. Toon knop alleen als er minder dan 3 honden zijn */}
       {allDogs.length < 3 && (
         <Link
           href="/onboarding"
