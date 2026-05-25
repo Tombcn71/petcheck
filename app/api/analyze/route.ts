@@ -3,28 +3,28 @@ import { GoogleGenAI } from "@google/genai";
 import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
-import { TRIAL_DAYS } from "../../trial-config"; // Dit is nu je enige, centrale bron!
+import { TRIAL_DAYS } from "../../trial-config";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   pain: "Pijn-indicatie: Analyseer de gezichtsuitdrukking (Dog Facial Assessment). Let op samengeknepen ogen, stand van de oren en spanning rond de bek.",
   vomit:
-    "Braaksel Analyse: Analyseer de kleur en inhoud van het braaksel op de foto. Herken signalen van gal (geel), bloed (rood/bruin), vreemde voorwerpen of maagzuur (wit schuim) en geef aan of dit duidt op een acute situatie.",
-  poop: "Analyseer de ontlasting: beoordeel consistentie (diarree?), kleur (bloed/zwart?), slijm of zichtbare parasieten.",
-  eyes: "Focus op de ogen: check op troebelheid (staar), roodheid (ontsteking), afscheiding of zwelling van de oogleden.",
-  ears: "Ooranalyse: Kijk in de oorschelp. Zoek naar roodheid, overmatig donker oorsmeer (oormijt), gele afscheiding (infectie) of krabsporen/korstjes.",
-  nose: "Neusanalyse: Check op overmatige droogheid, korsten (hyperkeratose) of abnormale neusuitvloeiing.",
-  skin: "Huidanalyse: zoek naar kale plekken, roodheid, hotspots, korstjes of schilfering.",
+    "Braaksel Analyse: Analyseer de kleur en inhoud van het braaksel op de foto.",
+  poop: "Analyseer de ontlasting: beoordeel consistentie, kleur, slijm of parasieten.",
+  eyes: "Focus op de ogen: check op troebelheid, roodheid of afscheiding.",
+  ears: "Ooranalyse: Kijk in de oorschelp op roodheid, oorsmeer of infectie.",
+  nose: "Neusanalyse: Check op droogheid, korsten of uitvloeiing.",
+  skin: "Huidanalyse: zoek naar kale plekken, roodheid, hotspots of korstjes.",
   ticks:
-    "Parasieten & Teken Check: Zoek naar actieve insecten zoals vlooien, luizen of mijten, vlooienpoepjes (zwarte puntjes) in de vacht én vastgebeten teken (kleine donkere bultjes op de huid). Identificeer indien van toepassing het risico van de teek.",
+    "Parasieten & Teken Check: Zoek naar vlooien, luizen, mijten en teken.",
   mange:
-    "Schurft & Ringworm: Zoek naar cirkelvormige haaruitval of extreme korstvorming en irritatie.",
+    "Schurft & Ringworm: Zoek naar cirkelvormige haaruitval of korstvorming.",
   dental:
-    "Check het gebit: zoek naar tandsteen (geel/bruin), rood tandvlees (gingivitis) of terugwijkend tandvlees.",
+    "Check het gebit: zoek naar tandsteen, rood tandvlees of ontstekingen.",
   symmetry:
-    "Lichaams-Symmetrie Check: Analyseer de stand van de hond (recht van voren of van achteren). Kijk of de hond recht staat, zijn gewicht gelijkmatig verdeelt over his poten en of er asymmetrie is die kan duiden op gewrichtspijn of blessures.",
-  coat: "Vachtkwaliteit: Beoordeel glans, dofheid, vettigheid of tekenen van overmatig verharen.",
+    "Lichaams-Symmetrie Check: Analyseer de stand en gewichtsverdeling van de hond.",
+  coat: "Vachtkwaliteit: Beoordeel glans, dofheid of voedingstekorten.",
 };
 
 export async function POST(req: Request) {
@@ -34,32 +34,19 @@ export async function POST(req: Request) {
     if (!userId)
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-    // Haal metadata op uit de Clerk sessie
     const metadata = sessionClaims?.metadata as
       | { role?: string; trialEndsAt?: string }
       | undefined;
     const isPro = metadata?.role === "pro";
     const trialEndsAt = metadata?.trialEndsAt;
 
-    // Pak de starttijd van de token (of nu als fallback)
-    const tokenIssuedAt = sessionClaims?.iat
-      ? sessionClaims.iat * 1000
-      : Date.now();
+    // STRIKTE CHECK: Alleen toegang als Pro OF geldige trial datum
+    const isTrialValid =
+      trialEndsAt && new Date(trialEndsAt).getTime() > Date.now();
 
-    // Bereken de exacte proefperiode in milliseconden op basis van de variabele bovenaan
-    const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
-    const backupTrialExpired = Date.now() - tokenIssuedAt > trialDurationMs;
-
-    // Bepaal of de trial definitief voorbij is
-    const trialExpired =
-      !isPro &&
-      (trialEndsAt
-        ? new Date(trialEndsAt).getTime() < Date.now()
-        : backupTrialExpired);
-
-    if (trialExpired) {
+    if (!isPro && !isTrialValid) {
       return NextResponse.json(
-        { error: "Trial verlopen. Upgrade naar een betaald abonnement." },
+        { error: "Toegang geweigerd: Abonnement of trial verlopen." },
         { status: 403 },
       );
     }
@@ -88,43 +75,34 @@ export async function POST(req: Request) {
           role: "user",
           parts: [
             {
-              text: `Jij bent een AI Veterinaire Expert. 
-                     Opdracht: ${instruction}
-                     Antwoord in het Nederlands. 
-                     STRIKT JSON FORMAAT: {"summary": "string", "isOk": boolean, "details": "string", "advice": "string"}`,
+              text: `Jij bent een AI Veterinaire Expert. Opdracht: ${instruction}. STRIKT JSON: {"summary": "string", "isOk": boolean, "details": "string", "advice": "string"}`,
             },
             { inlineData: { mimeType: "image/jpeg", data: base64Data } },
           ],
         },
       ],
-      config: {
-        responseMimeType: "application/json",
-      },
+      config: { responseMimeType: "application/json" },
     });
 
     const rawText = result.text;
-    if (!rawText) throw new Error("Lege response van AI");
-
-    const cleanJsonString = rawText
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-    const aiData = JSON.parse(cleanJsonString);
+    if (!rawText) throw new Error("Lege response");
+    const aiData = JSON.parse(
+      rawText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim(),
+    );
 
     // 5. Database Opslag
     const sql = neon(process.env.DATABASE_URL!);
-    try {
-      await sql`
-        INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice) 
-        VALUES (${userId}, ${dogId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
-      `;
-    } catch (dbError) {
-      console.error("DB Save Error:", dbError);
-    }
+    await sql`
+      INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice) 
+      VALUES (${userId}, ${dogId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
+    `;
 
     return NextResponse.json(aiData);
   } catch (error: any) {
-    console.error("Final API Error:", error);
+    console.error("API Error:", error);
     return NextResponse.json({ error: "Fout bij verwerken" }, { status: 500 });
   }
 }
