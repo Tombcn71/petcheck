@@ -51,7 +51,7 @@ const dossierVertalingen: Record<string, string> = {
   mange: "Infecties",
   ears: "Oren",
 };
-
+export const dynamic = "force-dynamic";
 export default function DossierPagina() {
   return (
     <main className="min-h-screen bg-white font-jakarta antialiased">
