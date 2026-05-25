@@ -195,7 +195,6 @@ function ScanContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
-      // Verander dit in je return statement:
       <PricingModal
         isOpen={trialExpired}
         onClose={() => {
