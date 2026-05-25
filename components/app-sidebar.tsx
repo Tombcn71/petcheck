@@ -25,6 +25,21 @@ import {
 } from "@/components/ui/sidebar";
 import { PricingModal } from "@/components/PricingModal";
 
+// HARDCODED CONSTANTE (Geen import nodig, lost je build-fout op)
+const TRIAL_DAYS = 7;
+
+function isTrialActive(
+  createdAt: string | Date | number,
+  trialEndsAt?: string,
+) {
+  const start = new Date(createdAt).getTime();
+  const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  const end = trialEndsAt
+    ? new Date(trialEndsAt).getTime()
+    : start + trialDurationMs;
+  return Date.now() < end;
+}
+
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   {
@@ -53,26 +68,25 @@ function SidebarContentInternal() {
   );
 
   const urlDogId = searchParams.get("dogId");
-  // Als er een dogId in de URL staat gebruiken we die, anders vallen we terug op onze state
   const dogId = urlDogId || fallbackDogId;
-  const isPro = user?.publicMetadata?.role === "pro";
 
-  // VANGRAIL: Als er nergens een dogId is, halen we stilletjes de eerste hond op
+  const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+  const trialActive = user?.createdAt
+    ? isTrialActive(user.createdAt, trialEndsAt)
+    : false;
+
   useEffect(() => {
     async function checkAndFillDogId() {
-      if (urlDogId) return; // Er staat al een ID in de URL, niks aan de hand!
-
+      if (urlDogId) return;
       try {
         const res = await fetch(`/api/dogs?t=${Date.now()}`, {
           cache: "no-store",
         });
         const hondenData = await res.json();
-
         if (Array.isArray(hondenData) && hondenData.length > 0) {
           const eersteHondId = String(hondenData[0].id);
           setFallbackDogId(eersteHondId);
-
-          // Update direct de URL van de huidige pagina zodat ook de API's van die pagina gaan werken
           const currentParams = new URLSearchParams(window.location.search);
           currentParams.set("dogId", eersteHondId);
           router.replace(`${pathname}?${currentParams.toString()}`, {
@@ -83,10 +97,7 @@ function SidebarContentInternal() {
         console.error("Fout bij ophalen fallback hond in sidebar:", err);
       }
     }
-
-    if (isLoaded) {
-      checkAndFillDogId();
-    }
+    if (isLoaded) checkAndFillDogId();
   }, [urlDogId, isLoaded, pathname, router]);
 
   return (
@@ -97,7 +108,10 @@ function SidebarContentInternal() {
         <SidebarMenu className="gap-2 flex-1">
           {menuItems.map((item) => {
             const finalUrl = dogId ? `${item.url}?dogId=${dogId}` : item.url;
-            const isLocked = item.requirePro && isLoaded && !isPro;
+
+            // Logic: Alleen locked als GEEN Pro EN trial verlopen is
+            const isLocked =
+              item.requirePro && isLoaded && !isPro && !trialActive;
 
             return (
               <SidebarMenuItem key={item.title}>
