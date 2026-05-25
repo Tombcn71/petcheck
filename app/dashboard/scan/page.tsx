@@ -4,17 +4,12 @@ import { useState, useRef, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, X, Zap, ChevronRight } from "lucide-react";
-import { TRIAL_DAYS } from "../../trial-config";
+import { ArrowLeft } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
+
+const TRIAL_DAYS = 7;
 
 interface Result {
   summary?: string;
@@ -138,6 +133,7 @@ function ScanContent() {
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [showPricing, setShowPricing] = useState(false);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const isPro = user?.publicMetadata?.role === "pro";
@@ -168,13 +164,24 @@ function ScanContent() {
             : data,
         );
       } catch (err) {
-        console.error("Fout bij laden hond", err);
+        console.error("Hond laden mislukt", err);
       }
     }
     loadDog();
   }, [dogId]);
 
+  // DEZE useEffect zorgt ervoor dat de modal opent zodra de pagina merkt dat de trial voorbij is
+  useEffect(() => {
+    if (trialExpired) {
+      setShowPricing(true);
+    }
+  }, [trialExpired]);
+
   async function analyze(toolId: string, file: File) {
+    if (trialExpired) {
+      setShowPricing(true);
+      return;
+    }
     setLoading((prev) => ({ ...prev, [toolId]: true }));
     const reader = new FileReader();
     reader.onload = async () => {
@@ -211,53 +218,21 @@ function ScanContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
-      {trialExpired && (
-        <div className="fixed inset-0 bg-[#1A1A2E]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full relative shadow-2xl border-4 border-[#4FC3F7]">
-            <Link
-              href="/dashboard"
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-900">
-              <X size={24} />
-            </Link>
-            <div className="text-center mb-8">
-              <Zap size={32} className="text-[#4FC3F7] mx-auto mb-4" />
-              <h2 className="text-2xl font-black uppercase">Trial voorbij</h2>
-              <p className="text-xs text-slate-500 mt-2">
-                Kies een plan om onbeperkt scans te maken.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <button
-                onClick={() =>
-                  (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g74m7KLTE0`)
-                }
-                className="w-full bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 text-left">
-                <div className="font-black text-sm">Maandelijks</div>
-                <div className="text-2xl font-black">€9,99</div>
-              </button>
-              <button
-                onClick={() =>
-                  (window.location.href = `/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW`)
-                }
-                className="w-full bg-[#1A1A2E] p-5 rounded-2xl text-white text-left">
-                <div className="font-black text-sm text-[#4FC3F7]">
-                  Jaarlijks
-                </div>
-                <div className="text-2xl font-black">€99,00</div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        dogId={dogId || undefined}
+      />
 
       <main
-        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm grayscale-[0.5]" : ""}`}>
+        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm" : ""}`}>
         <Link
           href={`/dashboard?dogId=${dogId}`}
-          className="inline-flex items-center gap-2 text-slate-400 font-bold mb-8">
-          <ArrowLeft size={14} /> Terug
+          className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8">
+          <ArrowLeft size={14} /> Terug naar Dashboard
         </Link>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {tools.map((tool) => (
             <Card
               key={tool.id}
@@ -268,7 +243,11 @@ function ScanContent() {
                   style={{ background: tool.bg }}>
                   {tool.icon}
                 </div>
-                <CardTitle>{tool.title}</CardTitle>
+                <div>
+                  <CardTitle className="text-lg font-bold">
+                    {tool.title}
+                  </CardTitle>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
@@ -278,18 +257,11 @@ function ScanContent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    "📸"
+                    "📸 Foto uploaden"
                   )}
                 </div>
-                <Button
-                  className="w-full"
-                  onClick={() => fileRefs.current[tool.id]?.click()}
-                  disabled={loading[tool.id]}>
-                  {loading[tool.id] ? "Scannen..." : "Start Analyse"}
-                </Button>
                 <input
                   type="file"
-                  accept="image/*"
                   className="hidden"
                   ref={(el) => {
                     fileRefs.current[tool.id] = el;
@@ -298,6 +270,12 @@ function ScanContent() {
                     e.target.files?.[0] && analyze(tool.id, e.target.files[0])
                   }
                 />
+                <Button
+                  className="w-full"
+                  style={{ background: tool.bg, color: tool.color }}
+                  onClick={() => fileRefs.current[tool.id]?.click()}>
+                  {loading[tool.id] ? "Bezig..." : "Start Analyse"}
+                </Button>
               </CardContent>
             </Card>
           ))}
