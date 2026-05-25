@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Menu } from "lucide-react";
+import { PricingModal } from "@/components/PricingModal";
 
-// De hoofd-layout exporteert nu een Suspense-wrapper
 export default function DashboardLayout({
   children,
 }: {
@@ -25,35 +25,31 @@ export default function DashboardLayout({
   );
 }
 
-// Hier staat al jouw logica, nu veilig binnen de Suspense
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
-  const dogIdFromUrl = searchParams ? searchParams.get("dogId") || "" : "";
-  const [allDogs, setAllDogs] = useState<any[]>([]);
+  const router = useRouter();
 
-  useEffect(() => {
-    async function fetchDogs() {
-      if (!isLoaded || !user) return;
-      try {
-        const res = await fetch(`/api/dogs?t=${Date.now()}`, {
-          cache: "no-store",
-        });
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setAllDogs(data);
-        }
-      } catch (err) {
-        console.error("Fout bij ophalen honden in layout:", err);
-      }
-    }
-    fetchDogs();
-  }, [isLoaded, user]);
+  // We gebruiken de URL als "global state" voor de modal
+  const showPricing = searchParams?.get("showPricing") === "true";
+  const dogId = searchParams?.get("dogId") || undefined;
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-[#F8FAFC]">
         <AppSidebar />
+
+        {/* De modal staat hier altijd "bovenop" de hele layout */}
+        <PricingModal
+          isOpen={showPricing}
+          onClose={() => {
+            // Verwijder de query parameter uit de URL als we sluiten
+            router.replace(
+              window.location.pathname + (dogId ? `?dogId=${dogId}` : ""),
+            );
+          }}
+          dogId={dogId}
+        />
+
         <main className="flex-1 flex flex-col min-w-0">
           <header className="flex h-16 items-center justify-between border-b bg-white px-6 lg:px-10 sticky top-0 z-20 gap-4">
             <div className="flex items-center min-w-0">
@@ -71,7 +67,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
             </div>
-            <div className="shrink-0 flex items-center max-w-xs sm:max-w-md md:max-w-lg overflow-x-auto no-scrollbar"></div>
           </header>
           <div className="p-6 lg:p-10">{children}</div>
         </main>
