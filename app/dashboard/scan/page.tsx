@@ -195,12 +195,15 @@ function ScanContent() {
 
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
+      // Verander dit in je return statement:
       <PricingModal
         isOpen={trialExpired}
-        onClose={() => {}}
+        onClose={() => {
+          // Stuur de gebruiker terug naar het dashboard bij het sluiten
+          window.location.href = `/dashboard?dogId=${dogId}`;
+        }}
         dogId={dogId || undefined}
       />
-
       <main
         className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm pointer-events-none" : ""}`}>
         <Link
