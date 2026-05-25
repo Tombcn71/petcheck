@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
 
-const TRIAL_DAYS = 7;
+const TRIAL_DAYS = 0;
 
 interface Result {
   summary?: string;
@@ -30,7 +30,6 @@ const tools = [
     id: "pain",
     icon: "🤕",
     title: "Pijn Signalen",
-    description: "Analyseer gezichtsuitdrukkingen op acute pijn",
     bg: "#FCE4EC",
     color: "#D81B60",
   },
@@ -38,7 +37,6 @@ const tools = [
     id: "vomit",
     icon: "🤮",
     title: "Braaksel Analyse",
-    description: "Analyseer kleur en inhoud op alarmsignalen",
     bg: "#F1F8E9",
     color: "#558B2F",
   },
@@ -46,7 +44,6 @@ const tools = [
     id: "poop",
     icon: "💩",
     title: "Ontlasting Analyse",
-    description: "Detecteer bloed, wormen en consistentie",
     bg: "#F1EFE8",
     color: "#5D4037",
   },
@@ -54,7 +51,6 @@ const tools = [
     id: "eyes",
     icon: "👁️",
     title: "Oog Check",
-    description: "Controleer op staar, roodheid of irritatie",
     bg: "#E6F1FB",
     color: "#0288D1",
   },
@@ -62,7 +58,6 @@ const tools = [
     id: "ears",
     icon: "👂",
     title: "Oor Check",
-    description: "Spoor diepliggende ontstekingen of mijt op",
     bg: "#E1F5EE",
     color: "#00695C",
   },
@@ -70,7 +65,6 @@ const tools = [
     id: "nose",
     icon: "👃",
     title: "Neus Analyse",
-    description: "Check op extreme droogheid of korstjes",
     bg: "#ECEFF1",
     color: "#455A64",
   },
@@ -78,7 +72,6 @@ const tools = [
     id: "skin",
     icon: "🐾",
     title: "Huid & Allergie",
-    description: "Herken hotspots, kale plekken en uitslag",
     bg: "#FAEEDA",
     color: "#E65100",
   },
@@ -86,7 +79,6 @@ const tools = [
     id: "ticks",
     icon: "🕷️",
     title: "Parasieten & Teken",
-    description: "Spoor actieve vlooien, mijten en teken op",
     bg: "#EEEDFE",
     color: "#6A1B9A",
   },
@@ -94,7 +86,6 @@ const tools = [
     id: "mange",
     icon: "🔬",
     title: "Huidinfecties",
-    description: "Maak onderscheid tussen schimmel of schurft",
     bg: "#FCEBEB",
     color: "#C62828",
   },
@@ -102,7 +93,6 @@ const tools = [
     id: "dental",
     icon: "🦷",
     title: "Gebit & Tandvlees",
-    description: "Monitor tandsteen en tandvleesontstekingen",
     bg: "#EAF3DE",
     color: "#388E3C",
   },
@@ -110,7 +100,6 @@ const tools = [
     id: "symmetry",
     icon: "🪞",
     title: "Lichaams-Symmetrie",
-    description: "Beoordeel de stand en gewichtsverdeling",
     bg: "#E0F7FA",
     color: "#00838F",
   },
@@ -118,7 +107,6 @@ const tools = [
     id: "coat",
     icon: "🐕",
     title: "Vachtkwaliteit",
-    description: "Beoordeel glans, dofheid en voedingstekorten",
     bg: "#FFF8E1",
     color: "#FF8F00",
   },
@@ -133,7 +121,6 @@ function ScanContent() {
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
-  const [showPricing, setShowPricing] = useState(false);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const isPro = user?.publicMetadata?.role === "pro";
@@ -170,18 +157,8 @@ function ScanContent() {
     loadDog();
   }, [dogId]);
 
-  // DEZE useEffect zorgt ervoor dat de modal opent zodra de pagina merkt dat de trial voorbij is
-  useEffect(() => {
-    if (trialExpired) {
-      setShowPricing(true);
-    }
-  }, [trialExpired]);
-
   async function analyze(toolId: string, file: File) {
-    if (trialExpired) {
-      setShowPricing(true);
-      return;
-    }
+    if (trialExpired) return;
     setLoading((prev) => ({ ...prev, [toolId]: true }));
     const reader = new FileReader();
     reader.onload = async () => {
@@ -219,13 +196,13 @@ function ScanContent() {
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
       <PricingModal
-        isOpen={showPricing}
-        onClose={() => setShowPricing(false)}
+        isOpen={trialExpired}
+        onClose={() => {}}
         dogId={dogId || undefined}
       />
 
       <main
-        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm" : ""}`}>
+        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm pointer-events-none" : ""}`}>
         <Link
           href={`/dashboard?dogId=${dogId}`}
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8">
@@ -243,11 +220,9 @@ function ScanContent() {
                   style={{ background: tool.bg }}>
                   {tool.icon}
                 </div>
-                <div>
-                  <CardTitle className="text-lg font-bold">
-                    {tool.title}
-                  </CardTitle>
-                </div>
+                <CardTitle className="text-lg font-bold">
+                  {tool.title}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
@@ -260,7 +235,6 @@ function ScanContent() {
                     "📸 Foto uploaden"
                   )}
                 </div>
-
                 <input
                   type="file"
                   className="hidden"
@@ -271,15 +245,12 @@ function ScanContent() {
                     e.target.files?.[0] && analyze(tool.id, e.target.files[0])
                   }
                 />
-
                 <Button
                   className="w-full mb-4"
                   style={{ background: tool.bg, color: tool.color }}
                   onClick={() => fileRefs.current[tool.id]?.click()}>
                   {loading[tool.id] ? "Bezig..." : "Start Analyse"}
                 </Button>
-
-                {/* DIT IS WAT JE MISTE: */}
                 {results[tool.id] && (
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
                     <p className="font-bold">{results[tool.id].summary}</p>
