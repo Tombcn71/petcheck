@@ -51,7 +51,9 @@ const dossierVertalingen: Record<string, string> = {
   mange: "Infecties",
   ears: "Oren",
 };
+
 export const dynamic = "force-dynamic";
+
 export default function DossierPagina() {
   return (
     <main className="min-h-screen bg-white font-jakarta antialiased">
@@ -69,7 +71,8 @@ export default function DossierPagina() {
 
 function DossierContent() {
   const searchParams = useSearchParams();
-  const dogIdFromUrl = searchParams.get("dogId");
+  // Veilige check voor build-tijd
+  const dogIdFromUrl = searchParams ? searchParams.get("dogId") : null;
 
   const [scans, setScans] = useState<DossierScan[]>([]);
   const [dog, setDog] = useState<Dog | null>(null);
@@ -164,14 +167,12 @@ function DossierContent() {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 md:p-12">
-      {/* TERUG KNOP */}
       <Link
         href={`/dashboard?dogId=${dogIdFromUrl}`}
         className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8 transition-colors">
         <ArrowLeft size={14} /> Terug naar Dashboard
       </Link>
 
-      {/* HEADER - DEZELFDE STIJL ALS SCAN/MEDICATIE */}
       <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <div className="h-16 w-16 md:h-20 md:w-20 rounded-3xl overflow-hidden border-4 border-slate-50 shadow-md bg-slate-50 shrink-0">
@@ -203,7 +204,6 @@ function DossierContent() {
         </Button>
       </header>
 
-      {/* TABS */}
       <div className="mb-10">
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-2 pb-4">
@@ -224,7 +224,6 @@ function DossierContent() {
         </ScrollArea>
       </div>
 
-      {/* SCANS GRID */}
       {gefilterdeScans.length === 0 ? (
         <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2.5rem]">
           <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
