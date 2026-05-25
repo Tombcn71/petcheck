@@ -273,7 +273,10 @@ function DossierContent() {
                   <span className="text-[9px] font-black uppercase text-[#4FC3F7] tracking-[0.2em] block mb-2">
                     AI Advies
                   </span>
-                  <p className="text-[#1A1A2E] text-[13px] font-bold leading-snug">
+                  <p
+                    className={`text-[13px] font-bold leading-snug ${
+                      !scan.is_ok ? "text-red-600" : "text-[#1A1A2E]"
+                    }`}>
                     {scan.advice}
                   </p>
                 </div>
