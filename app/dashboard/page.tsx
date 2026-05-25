@@ -258,7 +258,7 @@ function DashboardContent() {
           Dit zet de switcher helemaal strak bovenaan de pagina content neer, 
           met een subtiele scheidingslijn, ideaal voor mobiel én desktop.
         */}
-        {allDogs.length > 1 && (
+        {allDogs.length > 0 && (
           <div className="mb-6 pb-2 border-b border-slate-100">
             <DogSwitcher
               allDogs={allDogs}
