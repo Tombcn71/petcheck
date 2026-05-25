@@ -260,6 +260,7 @@ function ScanContent() {
                     "📸 Foto uploaden"
                   )}
                 </div>
+
                 <input
                   type="file"
                   className="hidden"
@@ -270,12 +271,26 @@ function ScanContent() {
                     e.target.files?.[0] && analyze(tool.id, e.target.files[0])
                   }
                 />
+
                 <Button
-                  className="w-full"
+                  className="w-full mb-4"
                   style={{ background: tool.bg, color: tool.color }}
                   onClick={() => fileRefs.current[tool.id]?.click()}>
                   {loading[tool.id] ? "Bezig..." : "Start Analyse"}
                 </Button>
+
+                {/* DIT IS WAT JE MISTE: */}
+                {results[tool.id] && (
+                  <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
+                    <p className="font-bold">{results[tool.id].summary}</p>
+                    <p className="text-slate-600">{results[tool.id].advice}</p>
+                    {results[tool.id].isOk === false && (
+                      <span className="inline-block px-2 py-1 bg-red-100 text-red-700 rounded-md font-bold mt-1">
+                        Let op: Check dit bij een dierenarts.
+                      </span>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
