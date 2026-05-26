@@ -112,28 +112,25 @@ const tools = [
   },
 ];
 
-// Comprimeer afbeelding naar max 800px, 70% kwaliteit
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new window.Image();
     const url = URL.createObjectURL(file);
+    const img = new window.Image();
 
     img.onload = () => {
-      URL.revokeObjectURL(url); // direct vrijgeven
+      URL.revokeObjectURL(url);
 
-      const MAX = 500; // was 800, nu kleiner
+      const MAX = 300;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
 
-      const ctx = canvas.getContext("2d", { willReadFrequently: false })!;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas
+        .getContext("2d")!
+        .drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL("image/jpeg", 0.6);
 
-      // Haal base64 op
-      const base64 = canvas.toDataURL("image/jpeg", 0.6); // was 0.7
-
-      // Canvas geheugen direct leegmaken
       canvas.width = 0;
       canvas.height = 0;
 
@@ -148,6 +145,7 @@ function compressImage(file: File): Promise<string> {
     img.src = url;
   });
 }
+
 function ScanContent() {
   const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
@@ -158,7 +156,6 @@ function ScanContent() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
 
-  // Twee refs per tool: één voor camera, één voor galerij
   const cameraRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const galleryRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -238,7 +235,9 @@ function ScanContent() {
         dogId={dogId || undefined}
       />
       <main
-        className={`max-w-7xl mx-auto transition-all duration-500 ${trialExpired ? "blur-sm pointer-events-none" : ""}`}>
+        className={`max-w-7xl mx-auto transition-all duration-500 ${
+          trialExpired ? "blur-sm pointer-events-none" : ""
+        }`}>
         <Link
           href={`/dashboard?dogId=${dogId}`}
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8">
@@ -260,8 +259,8 @@ function ScanContent() {
                   {tool.title}
                 </CardTitle>
               </CardHeader>
+
               <CardContent>
-                {/* Voorbeeld preview */}
                 <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
                   {previews[tool.id] ? (
                     <img
@@ -276,7 +275,7 @@ function ScanContent() {
                   )}
                 </div>
 
-                {/* Hidden input: camera (achtercamera direct) */}
+                {/* Hidden input: camera */}
                 <input
                   type="file"
                   accept="image/*"
@@ -285,12 +284,15 @@ function ScanContent() {
                   ref={(el) => {
                     cameraRefs.current[tool.id] = el;
                   }}
-                  onChange={(e) =>
-                    e.target.files?.[0] && analyze(tool.id, e.target.files[0])
-                  }
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      analyze(tool.id, e.target.files[0]);
+                      e.target.value = "";
+                    }
+                  }}
                 />
 
-                {/* Hidden input: galerij (geen capture) */}
+                {/* Hidden input: galerij */}
                 <input
                   type="file"
                   accept="image/*"
@@ -298,12 +300,15 @@ function ScanContent() {
                   ref={(el) => {
                     galleryRefs.current[tool.id] = el;
                   }}
-                  onChange={(e) =>
-                    e.target.files?.[0] && analyze(tool.id, e.target.files[0])
-                  }
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      analyze(tool.id, e.target.files[0]);
+                      e.target.value = "";
+                    }
+                  }}
                 />
 
-                {/* Twee knoppen naast elkaar */}
+                {/* Twee knoppen */}
                 <div className="flex gap-2 mb-4">
                   <Button
                     className="flex-1 flex items-center justify-center gap-1.5 text-sm"
@@ -323,7 +328,6 @@ function ScanContent() {
                   </Button>
                 </div>
 
-                {/* Resultaten */}
                 {results[tool.id] && (
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
                     <p className="font-bold">{results[tool.id].summary}</p>
