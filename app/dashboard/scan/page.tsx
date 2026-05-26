@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Camera, Image } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
-import { upload } from "@vercel/blob/client";
 
 const TRIAL_DAYS = 0;
 
@@ -165,7 +164,7 @@ function ScanContent() {
     setLoading((prev) => ({ ...prev, [toolId]: true }));
 
     try {
-      // Preview — browser doet dit zelf efficient, geen RAM probleem
+      // Preview — browser doet dit zelf zonder decodering
       const previewUrl = URL.createObjectURL(file);
       setPreviews((prev) => {
         if (prev[toolId]?.startsWith("blob:"))
@@ -173,18 +172,15 @@ function ScanContent() {
         return { ...prev, [toolId]: previewUrl };
       });
 
-      // Upload rauw naar Vercel Blob — telefoon decodeert niets
-      const { url: blobUrl } = await upload(
-        `temp/${toolId}-${Date.now()}.jpg`,
-        file,
-        { access: "public", handleUploadUrl: "/api/upload" },
-      );
+      // Stream de foto direct naar de API — geen base64, geen canvas, geen blob upload
+      const form = new FormData();
+      form.append("image", file);
+      form.append("toolId", toolId);
+      if (dogId) form.append("dogId", dogId);
 
-      // Server haalt de foto op, comprimeert met sharp, stuurt naar Gemini
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blobUrl, toolId, dogId }),
+        body: form,
       });
 
       const data = await res.json();
@@ -198,11 +194,6 @@ function ScanContent() {
       setLoading((prev) => ({ ...prev, [toolId]: false }));
     }
   }
-
-  if (!isLoaded)
-    return (
-      <div className="p-20 text-center uppercase font-black">Laden...</div>
-    );
 
   return (
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">

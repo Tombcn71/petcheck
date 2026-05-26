@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { put, del } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
 import sharp from "sharp";
@@ -42,28 +42,21 @@ export async function POST(req: Request) {
     if (!isPro && !isTrialValid)
       return NextResponse.json({ error: "Toegang geweigerd" }, { status: 403 });
 
-    const { blobUrl, toolId, dogId } = await req.json();
-    if (!blobUrl)
-      return NextResponse.json(
-        { error: "Geen afbeelding URL" },
-        { status: 400 },
-      );
+    // FormData lezen — file wordt gestreamd, niet gebufferd op de telefoon
+    const form = await req.formData();
+    const imageFile = form.get("image") as File | null;
+    const toolId = form.get("toolId") as string;
+    const dogId = form.get("dogId") as string | null;
 
-    // Haal de foto op van Vercel Blob en comprimeer server-side
-    const fetchRes = await fetch(blobUrl);
-    const rawBuffer = Buffer.from(await fetchRes.arrayBuffer());
+    if (!imageFile)
+      return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
 
+    // Server comprimeert — telefoon heeft niets gedaan
+    const rawBuffer = Buffer.from(await imageFile.arrayBuffer());
     const compressed = await sharp(rawBuffer)
       .resize(800, 800, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 70 })
       .toBuffer();
-
-    // Verwijder ruwe upload — niet fataal als het mislukt
-    try {
-      await del(blobUrl);
-    } catch {
-      // niet fataal
-    }
 
     const blob = await put(`scans/${userId}/${Date.now()}.jpg`, compressed, {
       access: "public",
