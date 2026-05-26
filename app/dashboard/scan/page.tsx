@@ -11,7 +11,6 @@ import { PricingModal } from "@/components/PricingModal";
 
 const TRIAL_DAYS = 0;
 
-// Hier staan de tools gedefinieerd zodat ze overal in het bestand beschikbaar zijn
 const tools = [
   {
     id: "pain",
@@ -131,53 +130,52 @@ function ScanContent() {
       ? new Date(trialEndsAt).getTime() < Date.now()
       : backupTrialExpired);
 
-  // Functie om de foto te verkleinen voor de AI
-  async function resizeImage(file: File): Promise<string> {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 1024;
-          const scaleSize = MAX_WIDTH / img.width;
-          canvas.width = MAX_WIDTH;
-          canvas.height = img.height * scaleSize;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL("image/jpeg", 0.7));
-        };
-      };
-    });
-  }
-
   async function analyze(toolId: string, file: File) {
     if (trialExpired) return;
     setLoading((prev) => ({ ...prev, [toolId]: true }));
-    try {
-      const base64 = await resizeImage(file);
-      setPreviews((prev) => ({ ...prev, [toolId]: base64 }));
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: base64,
-          toolId,
-          dogId: dogId ? parseInt(dogId) : null,
-        }),
-      });
-      const data = await res.json();
-      setResults((prev) => ({ ...prev, [toolId]: data }));
-    } catch (err) {
-      setResults((prev) => ({
-        ...prev,
-        [toolId]: { error: "Analyse mislukt." },
-      }));
-    } finally {
-      setLoading((prev) => ({ ...prev, [toolId]: false }));
-    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        // Verklein naar 800px breed om geheugen te sparen
+        const scale = Math.min(800 / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const base64 = canvas.toDataURL("image/jpeg", 0.6);
+        setPreviews((prev) => ({ ...prev, [toolId]: base64 }));
+
+        // API call
+        fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64,
+            toolId,
+            dogId: dogId ? parseInt(dogId) : null,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => setResults((prev) => ({ ...prev, [toolId]: data })))
+          .catch(() =>
+            setResults((prev) => ({
+              ...prev,
+              [toolId]: { error: "Analyse mislukt." },
+            })),
+          )
+          .finally(() => {
+            setLoading((prev) => ({ ...prev, [toolId]: false }));
+            // Geheugen opschonen
+            canvas.remove();
+          });
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   if (!isLoaded)
@@ -189,9 +187,7 @@ function ScanContent() {
     <div className="min-h-screen bg-[#F7F7FA] text-[#1A1A2E] font-sans p-6 md:p-12 relative">
       <PricingModal
         isOpen={trialExpired}
-        onClose={() => {
-          window.location.href = `/dashboard?dogId=${dogId}`;
-        }}
+        onClose={() => (window.location.href = `/dashboard?dogId=${dogId}`)}
         dogId={dogId || undefined}
       />
       <main
