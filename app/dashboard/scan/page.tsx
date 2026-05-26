@@ -11,20 +11,7 @@ import { PricingModal } from "@/components/PricingModal";
 
 const TRIAL_DAYS = 0;
 
-interface Result {
-  summary?: string;
-  isOk?: boolean;
-  details?: string;
-  advice?: string;
-  error?: string;
-}
-
-interface Dog {
-  id: string;
-  name: string;
-  image_url?: string;
-}
-
+// Hier staan de tools gedefinieerd zodat ze overal in het bestand beschikbaar zijn
 const tools = [
   {
     id: "pain",
@@ -112,12 +99,19 @@ const tools = [
   },
 ];
 
+interface Result {
+  summary?: string;
+  isOk?: boolean;
+  details?: string;
+  advice?: string;
+  error?: string;
+}
+
 function ScanContent() {
   const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
   const dogId = searchParams.get("dogId");
 
-  const [dog, setDog] = useState<Dog | null>(null);
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
@@ -125,13 +119,11 @@ function ScanContent() {
 
   const isPro = user?.publicMetadata?.role === "pro";
   const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
-
   const signupDate = user?.createdAt
     ? new Date(user.createdAt).getTime()
     : Date.now();
   const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
   const backupTrialExpired = Date.now() - signupDate > trialDurationMs;
-
   const trialExpired =
     !!user &&
     !isPro &&
@@ -139,53 +131,53 @@ function ScanContent() {
       ? new Date(trialEndsAt).getTime() < Date.now()
       : backupTrialExpired);
 
-  useEffect(() => {
-    async function loadDog() {
-      if (!dogId) return;
-      try {
-        const res = await fetch(`/api/dogs?dogId=${dogId}`);
-        const data = await res.json();
-        setDog(
-          Array.isArray(data)
-            ? data.find((d) => String(d.id) === String(dogId))
-            : data,
-        );
-      } catch (err) {
-        console.error("Hond laden mislukt", err);
-      }
-    }
-    loadDog();
-  }, [dogId]);
+  // Functie om de foto te verkleinen voor de AI
+  async function resizeImage(file: File): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1024;
+          const scaleSize = MAX_WIDTH / img.width;
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7));
+        };
+      };
+    });
+  }
 
   async function analyze(toolId: string, file: File) {
     if (trialExpired) return;
     setLoading((prev) => ({ ...prev, [toolId]: true }));
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result as string;
+    try {
+      const base64 = await resizeImage(file);
       setPreviews((prev) => ({ ...prev, [toolId]: base64 }));
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: base64,
-            toolId,
-            dogId: dogId ? parseInt(dogId) : null,
-          }),
-        });
-        const data = await res.json();
-        setResults((prev) => ({ ...prev, [toolId]: data }));
-      } catch (err) {
-        setResults((prev) => ({
-          ...prev,
-          [toolId]: { error: "Analyse mislukt." },
-        }));
-      } finally {
-        setLoading((prev) => ({ ...prev, [toolId]: false }));
-      }
-    };
-    reader.readAsDataURL(file);
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: base64,
+          toolId,
+          dogId: dogId ? parseInt(dogId) : null,
+        }),
+      });
+      const data = await res.json();
+      setResults((prev) => ({ ...prev, [toolId]: data }));
+    } catch (err) {
+      setResults((prev) => ({
+        ...prev,
+        [toolId]: { error: "Analyse mislukt." },
+      }));
+    } finally {
+      setLoading((prev) => ({ ...prev, [toolId]: false }));
+    }
   }
 
   if (!isLoaded)
@@ -198,7 +190,6 @@ function ScanContent() {
       <PricingModal
         isOpen={trialExpired}
         onClose={() => {
-          // Stuur de gebruiker terug naar het dashboard bij het sluiten
           window.location.href = `/dashboard?dogId=${dogId}`;
         }}
         dogId={dogId || undefined}
@@ -210,7 +201,6 @@ function ScanContent() {
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-8">
           <ArrowLeft size={14} /> Terug naar Dashboard
         </Link>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {tools.map((tool) => (
             <Card
@@ -240,7 +230,7 @@ function ScanContent() {
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment" // Dwingt de achtercamera te openen
+                  capture="environment"
                   className="hidden"
                   ref={(el) => {
                     fileRefs.current[tool.id] = el;
@@ -259,11 +249,6 @@ function ScanContent() {
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
                     <p className="font-bold">{results[tool.id].summary}</p>
                     <p className="text-slate-600">{results[tool.id].advice}</p>
-                    {results[tool.id].isOk === false && (
-                      <span className="inline-block px-2 py-1 bg-red-100 text-red-700 rounded-md font-bold mt-1">
-                        Let op: Check dit bij een dierenarts.
-                      </span>
-                    )}
                   </div>
                 )}
               </CardContent>
