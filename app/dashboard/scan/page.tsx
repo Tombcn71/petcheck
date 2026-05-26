@@ -112,40 +112,6 @@ const tools = [
   },
 ];
 
-function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-
-      const MAX = 300;
-      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-
-      canvas
-        .getContext("2d")!
-        .drawImage(img, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL("image/jpeg", 0.6);
-
-      canvas.width = 0;
-      canvas.height = 0;
-
-      resolve(base64);
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Afbeelding laden mislukt"));
-    };
-
-    img.src = url;
-  });
-}
-
 function ScanContent() {
   const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
@@ -196,18 +162,27 @@ function ScanContent() {
   async function analyze(toolId: string, file: File) {
     if (trialExpired) return;
     setLoading((prev) => ({ ...prev, [toolId]: true }));
+
     try {
-      const base64 = await compressImage(file);
-      setPreviews((prev) => ({ ...prev, [toolId]: base64 }));
+      // Preview via object URL — geen base64, geen canvas, geen geheugenprobleem
+      const previewUrl = URL.createObjectURL(file);
+      setPreviews((prev) => {
+        if (prev[toolId]?.startsWith("blob:"))
+          URL.revokeObjectURL(prev[toolId]);
+        return { ...prev, [toolId]: previewUrl };
+      });
+
+      // Stuur als FormData — server comprimeert met sharp
+      const form = new FormData();
+      form.append("image", file);
+      form.append("toolId", toolId);
+      if (dogId) form.append("dogId", dogId);
+
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: base64,
-          toolId,
-          dogId: dogId ? parseInt(dogId) : null,
-        }),
+        body: form,
       });
+
       const data = await res.json();
       setResults((prev) => ({ ...prev, [toolId]: data }));
     } catch (err) {
@@ -308,7 +283,6 @@ function ScanContent() {
                   }}
                 />
 
-                {/* Twee knoppen */}
                 <div className="flex gap-2 mb-4">
                   <Button
                     className="flex-1 flex items-center justify-center gap-1.5 text-sm"
