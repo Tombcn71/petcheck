@@ -5,6 +5,9 @@ import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
 import sharp from "sharp";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
@@ -55,8 +58,13 @@ export async function POST(req: Request) {
       .jpeg({ quality: 70 })
       .toBuffer();
 
-    // Vervang de ruwe upload door de gecomprimeerde versie
-    await del(blobUrl);
+    // Verwijder ruwe upload — niet fataal als het mislukt
+    try {
+      await del(blobUrl);
+    } catch {
+      // niet fataal
+    }
+
     const blob = await put(`scans/${userId}/${Date.now()}.jpg`, compressed, {
       access: "public",
       contentType: "image/jpeg",
