@@ -165,7 +165,7 @@ function ScanContent() {
     setLoading((prev) => ({ ...prev, [toolId]: true }));
 
     try {
-      // Preview direct via object URL — geen base64, geen canvas
+      // Preview — browser doet dit zelf efficient, geen RAM probleem
       const previewUrl = URL.createObjectURL(file);
       setPreviews((prev) => {
         if (prev[toolId]?.startsWith("blob:"))
@@ -173,14 +173,14 @@ function ScanContent() {
         return { ...prev, [toolId]: previewUrl };
       });
 
-      // Stap 1: upload foto direct van telefoon naar Vercel Blob
+      // Upload rauw naar Vercel Blob — telefoon decodeert niets
       const { url: blobUrl } = await upload(
         `temp/${toolId}-${Date.now()}.jpg`,
         file,
         { access: "public", handleUploadUrl: "/api/upload" },
       );
 
-      // Stap 2: stuur alleen de blob URL naar de analyze API
+      // Server haalt de foto op, comprimeert met sharp, stuurt naar Gemini
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -254,7 +254,6 @@ function ScanContent() {
                   )}
                 </div>
 
-                {/* Hidden input: camera */}
                 <input
                   type="file"
                   accept="image/*"
@@ -271,7 +270,6 @@ function ScanContent() {
                   }}
                 />
 
-                {/* Hidden input: galerij */}
                 <input
                   type="file"
                   accept="image/*"
