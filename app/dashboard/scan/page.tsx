@@ -239,6 +239,8 @@ function ScanContent() {
                 </div>
                 <input
                   type="file"
+                  accept="image/*"
+                  capture="environment" // Dwingt de achtercamera te openen
                   className="hidden"
                   ref={(el) => {
                     fileRefs.current[tool.id] = el;
