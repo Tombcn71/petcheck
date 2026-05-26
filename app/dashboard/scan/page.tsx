@@ -117,23 +117,37 @@ function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
     const url = URL.createObjectURL(file);
+
     img.onload = () => {
-      const MAX = 800;
+      URL.revokeObjectURL(url); // direct vrijgeven
+
+      const MAX = 500; // was 800, nu kleiner
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      canvas
-        .getContext("2d")!
-        .drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.7));
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+
+      const ctx = canvas.getContext("2d", { willReadFrequently: false })!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Haal base64 op
+      const base64 = canvas.toDataURL("image/jpeg", 0.6); // was 0.7
+
+      // Canvas geheugen direct leegmaken
+      canvas.width = 0;
+      canvas.height = 0;
+
+      resolve(base64);
     };
-    img.onerror = reject;
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Afbeelding laden mislukt"));
+    };
+
     img.src = url;
   });
 }
-
 function ScanContent() {
   const { user, isLoaded } = useUser();
   const searchParams = useSearchParams();
