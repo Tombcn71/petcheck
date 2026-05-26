@@ -3,12 +3,9 @@ import { GoogleGenAI } from "@google/genai";
 import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
-import sharp from "sharp";
-
-export const maxDuration = 60;
-export const dynamic = "force-dynamic";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const TRIAL_DAYS = 7;
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   pain: "Pijn-indicatie: Analyseer de gezichtsuitdrukking. Let op ogen, oren en bek.",
@@ -31,6 +28,7 @@ export async function POST(req: Request) {
     if (!userId)
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
+    // 1. Metadata check via JWT (Clerk JWT Template)
     const metadata = sessionClaims?.metadata as
       | { role?: string; trialEndsAt?: string }
       | undefined;
@@ -39,34 +37,27 @@ export async function POST(req: Request) {
     const isTrialValid =
       trialEndsAt && new Date(trialEndsAt).getTime() > Date.now();
 
-    if (!isPro && !isTrialValid)
+    if (!isPro && !isTrialValid) {
       return NextResponse.json({ error: "Toegang geweigerd" }, { status: 403 });
+    }
 
-    // FormData lezen — file wordt gestreamd, niet gebufferd op de telefoon
-    const form = await req.formData();
-    const imageFile = form.get("image") as File | null;
-    const toolId = form.get("toolId") as string;
-    const dogId = form.get("dogId") as string | null;
-
-    if (!imageFile)
+    // 2. Input verwerking
+    const { image, toolId, dogId } = await req.json();
+    if (!image)
       return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
 
-    // Server comprimeert — telefoon heeft niets gedaan
-    const rawBuffer = Buffer.from(await imageFile.arrayBuffer());
-    const compressed = await sharp(rawBuffer)
-      .resize(800, 800, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 70 })
-      .toBuffer();
+    const base64Data = image.split(",")[1];
+    const buffer = Buffer.from(base64Data, "base64");
+    const instruction =
+      SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
 
-    const blob = await put(`scans/${userId}/${Date.now()}.jpg`, compressed, {
+    // 3. Blob opslag
+    const blob = await put(`scans/${userId}/${Date.now()}.jpg`, buffer, {
       access: "public",
       contentType: "image/jpeg",
     });
 
-    const base64Data = compressed.toString("base64");
-    const instruction =
-      SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
-
+    // 4. AI Analyse
     const result = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
@@ -90,9 +81,10 @@ export async function POST(req: Request) {
         .trim(),
     );
 
+    // 5. Database opslag
     const sql = neon(process.env.DATABASE_URL!);
     await sql`
-      INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice)
+      INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice) 
       VALUES (${userId}, ${dogId}, ${toolId}, ${blob.url}, ${aiData.summary}, ${aiData.isOk}, ${aiData.details}, ${aiData.advice})
     `;
 
