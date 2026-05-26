@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Camera, Image } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
+import { upload } from "@vercel/blob/client";
 
 const TRIAL_DAYS = 0;
 
@@ -164,7 +165,7 @@ function ScanContent() {
     setLoading((prev) => ({ ...prev, [toolId]: true }));
 
     try {
-      // Preview via object URL — geen base64, geen canvas, geen geheugenprobleem
+      // Preview direct via object URL — geen base64, geen canvas
       const previewUrl = URL.createObjectURL(file);
       setPreviews((prev) => {
         if (prev[toolId]?.startsWith("blob:"))
@@ -172,15 +173,18 @@ function ScanContent() {
         return { ...prev, [toolId]: previewUrl };
       });
 
-      // Stuur als FormData — server comprimeert met sharp
-      const form = new FormData();
-      form.append("image", file);
-      form.append("toolId", toolId);
-      if (dogId) form.append("dogId", dogId);
+      // Stap 1: upload foto direct van telefoon naar Vercel Blob
+      const { url: blobUrl } = await upload(
+        `temp/${toolId}-${Date.now()}.jpg`,
+        file,
+        { access: "public", handleUploadUrl: "/api/upload" },
+      );
 
+      // Stap 2: stuur alleen de blob URL naar de analyze API
       const res = await fetch("/api/analyze", {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobUrl, toolId, dogId }),
       });
 
       const data = await res.json();

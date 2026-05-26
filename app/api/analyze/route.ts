@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@clerk/nextjs/server";
 import sharp from "sharp";
@@ -39,33 +39,33 @@ export async function POST(req: Request) {
     if (!isPro && !isTrialValid)
       return NextResponse.json({ error: "Toegang geweigerd" }, { status: 403 });
 
-    // FormData lezen
-    const form = await req.formData();
-    const imageFile = form.get("image") as File | null;
-    const toolId = form.get("toolId") as string;
-    const dogId = form.get("dogId") as string | null;
+    const { blobUrl, toolId, dogId } = await req.json();
+    if (!blobUrl)
+      return NextResponse.json(
+        { error: "Geen afbeelding URL" },
+        { status: 400 },
+      );
 
-    if (!imageFile)
-      return NextResponse.json({ error: "Geen afbeelding" }, { status: 400 });
+    // Haal de foto op van Vercel Blob en comprimeer server-side
+    const fetchRes = await fetch(blobUrl);
+    const rawBuffer = Buffer.from(await fetchRes.arrayBuffer());
 
-    // Bestand naar buffer — comprimeer op server met sharp
-    const arrayBuffer = await imageFile.arrayBuffer();
-    const compressed = await sharp(Buffer.from(arrayBuffer))
+    const compressed = await sharp(rawBuffer)
       .resize(800, 800, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 70 })
       .toBuffer();
 
-    const base64Data = compressed.toString("base64");
-    const instruction =
-      SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
-
-    // Blob opslag
+    // Vervang de ruwe upload door de gecomprimeerde versie
+    await del(blobUrl);
     const blob = await put(`scans/${userId}/${Date.now()}.jpg`, compressed, {
       access: "public",
       contentType: "image/jpeg",
     });
 
-    // AI Analyse
+    const base64Data = compressed.toString("base64");
+    const instruction =
+      SYSTEM_PROMPTS[toolId] || "Voer een algemene veterinaire check uit.";
+
     const result = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [
@@ -89,7 +89,6 @@ export async function POST(req: Request) {
         .trim(),
     );
 
-    // Database opslag
     const sql = neon(process.env.DATABASE_URL!);
     await sql`
       INSERT INTO scans (user_id, dog_id, tool_id, image_url, summary, is_ok, details, advice)
