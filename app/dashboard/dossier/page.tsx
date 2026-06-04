@@ -38,18 +38,18 @@ interface Dog {
 
 const dossierVertalingen: Record<string, string> = {
   alles: "Alles",
-  eyes: "Ogen",
-  poop: "Ontlasting",
-  dental: "Gebit",
-  skin: "Huid & Vacht",
-  bcs: "Gewicht",
-  pain: "Comfort",
-  coat: "Vachtglans",
-  nose: "Neus",
-  ticks: "Teken",
-  fleas: "Vlooien",
-  mange: "Infecties",
-  ears: "Oren",
+  pain: "Pijn Signalen",
+  vomit: "Braaksel Analyse",
+  poop: "Ontlasting Analyse",
+  eyes: "Oog Check",
+  ears: "Oor Check",
+  nose: "Neus Analyse",
+  skin: "Huid & Allergie",
+  ticks: "Parasieten & Teken",
+  mange: "Huidinfecties",
+  dental: "Gebit & Tandvlees",
+  symmetry: "Lichaams-Symmetrie",
+  coat: "Vachtkwaliteit",
 };
 
 export const dynamic = "force-dynamic";
