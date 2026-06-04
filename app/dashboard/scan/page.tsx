@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
 
 const TRIAL_DAYS = 7;
@@ -32,6 +32,7 @@ const tools = [
     title: "Pijn Signalen",
     bg: "#FCE4EC",
     color: "#D81B60",
+    photoTip: "Maak een foto van het gezicht van je hond",
   },
   {
     id: "vomit",
@@ -39,6 +40,7 @@ const tools = [
     title: "Braaksel Analyse",
     bg: "#F1F8E9",
     color: "#558B2F",
+    photoTip: "Maak een foto van het braaksel op de grond",
   },
   {
     id: "poop",
@@ -46,6 +48,7 @@ const tools = [
     title: "Ontlasting Analyse",
     bg: "#F1EFE8",
     color: "#5D4037",
+    photoTip: "Maak een foto van de ontlasting op de grond",
   },
   {
     id: "eyes",
@@ -53,20 +56,23 @@ const tools = [
     title: "Oog Check",
     bg: "#E6F1FB",
     color: "#0288D1",
+    photoTip: "Maak een close-up van het oog of de ogen",
   },
   {
     id: "ears",
-    icon: "👂",
+    icon: "🐶",
     title: "Oor Check",
     bg: "#E1F5EE",
     color: "#00695C",
+    photoTip: "Maak een foto van het binnenste van het oor",
   },
   {
     id: "nose",
-    icon: "👃",
+    icon: "🐽",
     title: "Neus Analyse",
     bg: "#ECEFF1",
     color: "#455A64",
+    photoTip: "Maak een foto van de neus, goed belicht",
   },
   {
     id: "skin",
@@ -74,6 +80,7 @@ const tools = [
     title: "Huid & Allergie",
     bg: "#FAEEDA",
     color: "#E65100",
+    photoTip: "Maak een foto van het aangetaste huidgebied",
   },
   {
     id: "ticks",
@@ -81,6 +88,7 @@ const tools = [
     title: "Parasieten & Teken",
     bg: "#EEEDFE",
     color: "#6A1B9A",
+    photoTip: "Maak een close-up van de teek of parasiet",
   },
   {
     id: "mange",
@@ -88,6 +96,7 @@ const tools = [
     title: "Huidinfecties",
     bg: "#FCEBEB",
     color: "#C62828",
+    photoTip: "Maak een foto van de aangetaste plek op de huid",
   },
   {
     id: "dental",
@@ -95,6 +104,7 @@ const tools = [
     title: "Gebit & Tandvlees",
     bg: "#EAF3DE",
     color: "#388E3C",
+    photoTip: "Maak een foto van de tanden, mond geopend",
   },
   {
     id: "symmetry",
@@ -102,6 +112,7 @@ const tools = [
     title: "Lichaams-Symmetrie",
     bg: "#E0F7FA",
     color: "#00838F",
+    photoTip: "Maak een foto van je hond van voren, staand",
   },
   {
     id: "coat",
@@ -109,6 +120,7 @@ const tools = [
     title: "Vachtkwaliteit",
     bg: "#FFF8E1",
     color: "#FF8F00",
+    photoTip: "Maak een close-up van de vacht",
   },
 ];
 
@@ -215,7 +227,7 @@ function ScanContent() {
           {tools.map((tool) => (
             <Card
               key={tool.id}
-              className="bg-white rounded-[2rem] border-none shadow-sm ring-1 ring-slate-200">
+              className={`bg-white rounded-[2rem] border-none shadow-sm ring-1 ring-slate-200 transition-all duration-300 ${loading[tool.id] ? "animate-pulse ring-2 ring-slate-400" : ""}`}>
               <CardHeader className="flex flex-row items-center gap-4 pb-4">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
@@ -227,14 +239,24 @@ function ScanContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative">
                   {previews[tool.id] ? (
-                    <img
-                      src={previews[tool.id]}
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={previews[tool.id]}
+                        className="w-full h-full object-cover"
+                      />
+                      {loading[tool.id] && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-2xl">
+                          <Loader2 className="animate-spin text-white" size={36} />
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    "📸 Foto uploaden"
+                    <div className="text-center px-4 py-2">
+                      <p className="text-2xl mb-2">📸</p>
+                      <p className="text-xs text-slate-500 leading-snug">{tool.photoTip}</p>
+                    </div>
                   )}
                 </div>
                 <input
@@ -250,8 +272,19 @@ function ScanContent() {
                 <Button
                   className="w-full mb-4"
                   style={{ background: tool.bg, color: tool.color }}
+                  disabled={loading[tool.id]}
                   onClick={() => fileRefs.current[tool.id]?.click()}>
-                  {loading[tool.id] ? "Bezig..." : "Start Analyse"}
+                  {loading[tool.id] ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="animate-spin" size={16} />
+                      Analyse bezig...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Upload size={16} />
+                      Upload Foto
+                    </span>
+                  )}
                 </Button>
                 {results[tool.id] && (
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">

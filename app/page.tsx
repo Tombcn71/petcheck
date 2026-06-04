@@ -37,7 +37,7 @@ const features = [
     desc: "Spoor oormijt en diepliggende ontstekingen op.",
   },
   {
-    icon: "🐶",
+    icon: "🐽",
     title: "Neus Check",
     desc: "Check op korsten, extreme droogheid of loopneuzen.",
   },
