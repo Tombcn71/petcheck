@@ -6,8 +6,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Camera, Loader2, Upload } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
 
 const TRIAL_DAYS = 7;
@@ -130,13 +129,11 @@ function ScanContent() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get("dogId");
 
-  const isMobile = useIsMobile();
   const [dog, setDog] = useState<Dog | null>(null);
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const cameraRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const isPro = user?.publicMetadata?.role === "pro";
   const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
@@ -271,47 +268,23 @@ function ScanContent() {
                     e.target.files?.[0] && analyze(tool.id, e.target.files[0])
                   }
                 />
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  ref={(el) => { cameraRefs.current[tool.id] = el; }}
-                  onChange={(e) =>
-                    e.target.files?.[0] && analyze(tool.id, e.target.files[0])
-                  }
-                />
-                <div className={`flex gap-2 mb-4 ${isMobile ? "" : ""}`}>
-                  <Button
-                    className="flex-1"
-                    style={{ background: tool.bg, color: tool.color }}
-                    disabled={loading[tool.id]}
-                    onClick={() => fileRefs.current[tool.id]?.click()}>
-                    {loading[tool.id] ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="animate-spin" size={16} />
-                        Bezig...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <Upload size={16} />
-                        Upload
-                      </span>
-                    )}
-                  </Button>
-                  {isMobile && (
-                    <Button
-                      className="flex-1"
-                      style={{ background: tool.bg, color: tool.color }}
-                      disabled={loading[tool.id]}
-                      onClick={() => cameraRefs.current[tool.id]?.click()}>
-                      <span className="flex items-center gap-2">
-                        <Camera size={16} />
-                        Camera
-                      </span>
-                    </Button>
+                <Button
+                  className="w-full mb-4"
+                  style={{ background: tool.bg, color: tool.color }}
+                  disabled={loading[tool.id]}
+                  onClick={() => fileRefs.current[tool.id]?.click()}>
+                  {loading[tool.id] ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="animate-spin" size={16} />
+                      Analyse bezig...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Upload size={16} />
+                      Upload Foto
+                    </span>
                   )}
-                </div>
+                </Button>
                 {results[tool.id] && (
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
                     <p className="font-bold">{results[tool.id].summary}</p>
