@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
 
@@ -32,7 +31,7 @@ const tools = [
     title: "Pijn Signalen",
     bg: "#FCE4EC",
     color: "#D81B60",
-    photoTip: "Maak een foto van het gezicht van je hond",
+    photoTip: "Upload een foto van het gezicht van je hond",
   },
   {
     id: "vomit",
@@ -40,7 +39,7 @@ const tools = [
     title: "Braaksel Analyse",
     bg: "#F1F8E9",
     color: "#558B2F",
-    photoTip: "Maak een foto van het braaksel op de grond",
+    photoTip: "Upload een foto van het braaksel op de grond",
   },
   {
     id: "poop",
@@ -48,7 +47,7 @@ const tools = [
     title: "Ontlasting Analyse",
     bg: "#F1EFE8",
     color: "#5D4037",
-    photoTip: "Maak een foto van de ontlasting op de grond",
+    photoTip: "Upload een foto van de ontlasting op de grond",
   },
   {
     id: "eyes",
@@ -56,7 +55,7 @@ const tools = [
     title: "Oog Check",
     bg: "#E6F1FB",
     color: "#0288D1",
-    photoTip: "Maak een close-up van het oog of de ogen",
+    photoTip: "Upload een close-up van het oog of de ogen",
   },
   {
     id: "ears",
@@ -64,7 +63,7 @@ const tools = [
     title: "Oor Check",
     bg: "#E1F5EE",
     color: "#00695C",
-    photoTip: "Maak een foto van het binnenste van het oor",
+    photoTip: "Upload een foto van het binnenste van het oor",
   },
   {
     id: "nose",
@@ -72,7 +71,7 @@ const tools = [
     title: "Neus Analyse",
     bg: "#ECEFF1",
     color: "#455A64",
-    photoTip: "Maak een foto van de neus, goed belicht",
+    photoTip: "Upload een foto van de neus, goed belicht",
   },
   {
     id: "skin",
@@ -80,7 +79,7 @@ const tools = [
     title: "Huid & Allergie",
     bg: "#FAEEDA",
     color: "#E65100",
-    photoTip: "Maak een foto van het aangetaste huidgebied",
+    photoTip: "Upload een foto van het aangetaste huidgebied",
   },
   {
     id: "ticks",
@@ -88,7 +87,7 @@ const tools = [
     title: "Parasieten & Teken",
     bg: "#EEEDFE",
     color: "#6A1B9A",
-    photoTip: "Maak een close-up van de teek of parasiet",
+    photoTip: "Upload een close-up van de teek of parasiet",
   },
   {
     id: "mange",
@@ -96,7 +95,7 @@ const tools = [
     title: "Huidinfecties",
     bg: "#FCEBEB",
     color: "#C62828",
-    photoTip: "Maak een foto van de aangetaste plek op de huid",
+    photoTip: "Upload een foto van de aangetaste plek op de huid",
   },
   {
     id: "dental",
@@ -104,7 +103,7 @@ const tools = [
     title: "Gebit & Tandvlees",
     bg: "#EAF3DE",
     color: "#388E3C",
-    photoTip: "Maak een foto van de tanden, mond geopend",
+    photoTip: "Upload een foto van de tanden, mond geopend",
   },
   {
     id: "symmetry",
@@ -112,7 +111,7 @@ const tools = [
     title: "Lichaams-Symmetrie",
     bg: "#E0F7FA",
     color: "#00838F",
-    photoTip: "Maak een foto van je hond van voren, staand",
+    photoTip: "Upload een foto van je hond van voren, staand",
   },
   {
     id: "coat",
@@ -120,7 +119,7 @@ const tools = [
     title: "Vachtkwaliteit",
     bg: "#FFF8E1",
     color: "#FF8F00",
-    photoTip: "Maak een close-up van de vacht",
+    photoTip: "Upload een close-up van de vacht",
   },
 ];
 
@@ -239,7 +238,9 @@ function ScanContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-[16/10] bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative">
+                <div
+                  className="aspect-16/10 bg-slate-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative cursor-pointer"
+                  onClick={() => fileRefs.current[tool.id]?.click()}>
                   {previews[tool.id] ? (
                     <>
                       <img
@@ -254,7 +255,7 @@ function ScanContent() {
                     </>
                   ) : (
                     <div className="text-center px-4 py-2">
-                      <p className="text-2xl mb-2">📸</p>
+                      <Upload size={28} className="mx-auto mb-2 text-slate-400" />
                       <p className="text-xs text-slate-500 leading-snug">{tool.photoTip}</p>
                     </div>
                   )}
@@ -268,23 +269,6 @@ function ScanContent() {
                     e.target.files?.[0] && analyze(tool.id, e.target.files[0])
                   }
                 />
-                <Button
-                  className="w-full mb-4"
-                  style={{ background: tool.bg, color: tool.color }}
-                  disabled={loading[tool.id]}
-                  onClick={() => fileRefs.current[tool.id]?.click()}>
-                  {loading[tool.id] ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="animate-spin" size={16} />
-                      Analyse bezig...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Upload size={16} />
-                      Upload Foto
-                    </span>
-                  )}
-                </Button>
                 {results[tool.id] && (
                   <div className="text-xs space-y-2 mt-2 p-3 bg-slate-50 rounded-xl">
                     <p className="font-bold">{results[tool.id].summary}</p>
