@@ -261,6 +261,7 @@ function ScanContent() {
                 </div>
                 <input
                   type="file"
+                  accept="image/*"
                   className="hidden"
                   ref={(el) => {
                     fileRefs.current[tool.id] = el;
