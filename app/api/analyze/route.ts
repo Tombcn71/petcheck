@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { TRIAL_DAYS } from "@/app/trial-config";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const TRIAL_DAYS = 7;
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   pain: "Pijn-indicatie: Analyseer de gezichtsuitdrukking. Let op ogen, oren en bek.",
@@ -24,20 +24,21 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const { userId, sessionClaims } = await auth();
+    const { userId } = await auth();
     if (!userId)
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-    // 1. Metadata check via JWT (Clerk JWT Template)
-    const metadata = sessionClaims?.metadata as
-      | { role?: string; trialEndsAt?: string }
-      | undefined;
-    const isPro = metadata?.role === "pro";
-    const trialEndsAt = metadata?.trialEndsAt;
-    const isTrialValid =
-      trialEndsAt && new Date(trialEndsAt).getTime() > Date.now();
+    // 1. Toegangscheck via Clerk user (betrouwbaarder dan JWT claims)
+    const user = await currentUser();
+    const meta = user?.publicMetadata as { role?: string; trialEndsAt?: string } | undefined;
+    const isPro = meta?.role === "pro";
+    const trialEndsAt = meta?.trialEndsAt;
+    const signupDate = user?.createdAt ?? Date.now();
+    const trialValid = trialEndsAt
+      ? new Date(trialEndsAt).getTime() > Date.now()
+      : Date.now() - signupDate <= TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
-    if (!isPro && !isTrialValid) {
+    if (!isPro && !trialValid) {
       return NextResponse.json({ error: "Toegang geweigerd" }, { status: 403 });
     }
 

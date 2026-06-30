@@ -7,8 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
-
-const TRIAL_DAYS = 7;
+import { TRIAL_DAYS } from "@/app/trial-config";
 
 interface Result {
   summary?: string;
@@ -226,7 +225,7 @@ function ScanContent() {
           {tools.map((tool) => (
             <Card
               key={tool.id}
-              className={`bg-white rounded-[2rem] border-none shadow-sm ring-1 ring-slate-200 transition-all duration-300 ${loading[tool.id] ? "animate-pulse ring-2 ring-slate-400" : ""}`}>
+              className={`bg-white rounded-4xl border-none shadow-sm ring-1 ring-slate-200 transition-all duration-300 ${loading[tool.id] ? "animate-pulse ring-2 ring-slate-400" : ""}`}>
               <CardHeader className="flex flex-row items-center gap-4 pb-4">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
