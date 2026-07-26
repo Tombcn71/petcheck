@@ -72,7 +72,7 @@ const dossierVertalingen: Record<string, string> = {
   dental: "Gebit",
   skin: "Huid & Vacht",
   bcs: "Gewicht",
-  pain: "Comfort",
+  pain: "Pijn Signalen",
   coat: "Vachtglans",
   nose: "Neus",
   ticks: "Teken",

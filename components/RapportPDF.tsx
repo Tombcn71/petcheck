@@ -58,14 +58,15 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: "auto",
-    paddingTop: 10,
-    borderTop: 1,
-    borderTopColor: "#f1f5f9",
+    paddingTop: 12,
+    borderTop: 2,
+    borderTopColor: "#e2e8f0",
   },
   footerText: {
-    fontSize: 7,
-    color: "#94a3b8",
+    fontSize: 10,
+    color: "#475569",
     textAlign: "center",
+    fontWeight: "bold",
   },
 });
 
@@ -81,7 +82,7 @@ const vertalingen: Record<string, string> = {
   ticks: "Teken/Parasieten",
   fleas: "Vlooien",
   bcs: "Gewicht & Bouw",
-  pain: "Gezichtsuitdrukking",
+  pain: "Pijn Signalen",
 };
 
 interface Props {

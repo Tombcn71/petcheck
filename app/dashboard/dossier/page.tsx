@@ -17,6 +17,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { RapportPDF } from "@/components/RapportPDF";
 
 // --- Types ---
 interface DossierScan {
@@ -199,9 +201,26 @@ function DossierContent() {
           </div>
         </div>
 
-        <Button className="bg-[#1A1A2E] text-white rounded-2xl px-6 h-12 hover:bg-[#4FC3F7] transition-all font-bold uppercase text-[10px] tracking-widest">
-          <FileDown size={18} className="mr-2" /> PDF Export
-        </Button>
+        <PDFDownloadLink
+          document={
+            <RapportPDF
+              dogName={dog.name}
+              brief={
+                actieveTab === "alles"
+                  ? `Volledig dossier van ${dog.name} — ${gefilterdeScans.length} scan(s).`
+                  : `${dossierVertalingen[actieveTab] || actieveTab} — meest recente scan van ${dog.name}.`
+              }
+              details={actieveTab === "alles" ? gefilterdeScans : gefilterdeScans.slice(0, 1)}
+            />
+          }
+          fileName={`${dog.name}-${actieveTab === "alles" ? "dossier" : actieveTab}.pdf`}>
+          {({ loading }) => (
+            <Button className="bg-[#1A1A2E] text-white rounded-2xl px-6 h-12 hover:bg-[#4FC3F7] transition-all font-bold uppercase text-[10px] tracking-widest" disabled={loading}>
+              {loading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <FileDown size={18} className="mr-2" />}
+              {loading ? "Laden..." : "PDF Export"}
+            </Button>
+          )}
+        </PDFDownloadLink>
       </header>
 
       <div className="mb-10">
