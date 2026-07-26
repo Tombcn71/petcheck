@@ -119,7 +119,7 @@ export function FeedbackButton() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="bg-[#4FC3F7] hover:bg-[#0288D1] text-white transition-all rounded-l-xl flex items-center justify-center shrink-0"
-        style={{ width: "32px", height: "110px" }}>
+        style={{ width: "42px", height: "110px" }}>
         <span
           className="font-black uppercase text-[10px] tracking-widest whitespace-nowrap"
           style={{ transform: "rotate(-90deg)" }}>
