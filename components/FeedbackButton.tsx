@@ -40,7 +40,7 @@ export function FeedbackButton() {
   };
 
   return (
-    <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center">
+    <div className="fixed right-0 top-2/3 -translate-y-1/2 z-50 flex items-center">
       {/* Uitschuivend paneel */}
       <div
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
