@@ -4,6 +4,7 @@ import * as React from "react";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -11,6 +12,7 @@ import {
   Settings,
   PawPrint,
   Loader2,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,

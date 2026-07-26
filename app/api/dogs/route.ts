@@ -72,6 +72,28 @@ export async function POST(req: Request) {
   }
 }
 
+export async function DELETE(req: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const dogId = searchParams.get("dogId");
+    if (!dogId) {
+      return NextResponse.json({ error: "dogId ontbreekt" }, { status: 400 });
+    }
+
+    const sql = neon(process.env.DATABASE_URL!);
+    await sql`DELETE FROM dogs WHERE id = ${dogId} AND user_id = ${userId}`;
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request) {
   try {
     const { userId } = await auth();

@@ -215,7 +215,7 @@ function DossierContent() {
           }
           fileName={`${dog.name}-${actieveTab === "alles" ? "dossier" : actieveTab}.pdf`}>
           {({ loading }) => (
-            <Button className="bg-[#1A1A2E] text-white rounded-2xl px-6 h-12 hover:bg-[#4FC3F7] transition-all font-bold uppercase text-[10px] tracking-widest" disabled={loading}>
+            <Button className="bg-[#4FC3F7] text-white rounded-2xl px-6 h-12 hover:bg-[#0288D1] transition-all font-bold uppercase text-[10px] tracking-widest" disabled={loading}>
               {loading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <FileDown size={18} className="mr-2" />}
               {loading ? "Laden..." : "PDF Export"}
             </Button>
@@ -232,7 +232,7 @@ function DossierContent() {
                 onClick={() => setActieveTab(cat)}
                 className={`rounded-xl px-6 py-2.5 text-xs font-bold border-2 transition-all ${
                   actieveTab === cat
-                    ? "bg-[#1A1A2E] border-[#1A1A2E] text-white"
+                    ? "bg-white border-[#4FC3F7] text-[#4FC3F7] hover:bg-[#4FC3F7]/10"
                     : "bg-white border-slate-100 text-slate-400 hover:border-[#4FC3F7] hover:text-[#4FC3F7]"
                 }`}>
                 {dossierVertalingen[cat] || cat}

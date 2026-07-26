@@ -2,20 +2,22 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Save, ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { Save, ArrowLeft, Camera, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // Wrapper om useSearchParams heen voor Next.js 13/14/15
 function ProfielContent() {
   const { user } = useUser();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const dogId = searchParams.get("dogId");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [dogData, setDogData] = useState({
     name: "",
@@ -96,7 +98,20 @@ function ProfielContent() {
     reader.readAsDataURL(file);
   };
 
-  // 3. PROFIEL OPSLAAN
+  // 3. HOND VERWIJDEREN
+  const handleDelete = async () => {
+    if (!confirm(`Weet je zeker dat je ${dogData.name} wilt verwijderen? Alle scans, vaccinaties en medicatie worden ook verwijderd.`)) return;
+    setIsDeleting(true);
+    try {
+      await fetch(`/api/dogs?dogId=${dogId}`, { method: "DELETE" });
+      router.push("/dashboard");
+    } catch {
+      alert("Verwijderen mislukt.");
+      setIsDeleting(false);
+    }
+  };
+
+  // 4. PROFIEL OPSLAAN
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -321,13 +336,26 @@ function ProfielContent() {
           <button
             type="submit"
             disabled={isSaving || isUploading}
-            className="w-full py-5 bg-[#1A1A2E] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#4FC3F7] transition-all shadow-lg flex items-center justify-center gap-2">
+            className="w-full py-5 bg-[#4FC3F7] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#0288D1] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-60">
             {isSaving ? (
               <Loader2 className="animate-spin" size={16} />
             ) : (
               <Save size={16} />
             )}
             {isSaving ? "Opslaan..." : "Profiel Opslaan"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full py-4 border-2 border-red-100 text-red-400 font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+            {isDeleting ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Trash2 size={16} />
+            )}
+            {isDeleting ? "Verwijderen..." : `${dogData.name || "Hond"} verwijderen`}
           </button>
         </form>
       </div>

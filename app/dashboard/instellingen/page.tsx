@@ -245,7 +245,7 @@ export default function InstellingenPage() {
                 <button
                   type="button"
                   onClick={() => setIsPricingOpen(true)}
-                  className="px-8 py-4 bg-[#1A1A2E] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#1A1A2E] hover:bg-[#4FC3F7] hover:border-[#4FC3F7] transition-all flex items-center gap-2 shadow-md">
+                  className="px-8 py-4 bg-[#4FC3F7] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#4FC3F7] hover:bg-[#0288D1] hover:border-[#0288D1] transition-all flex items-center gap-2 shadow-md">
                   Upgrade naar Pro
                 </button>
               </div>
@@ -269,7 +269,7 @@ export default function InstellingenPage() {
                 <button
                   type="button"
                   onClick={() => setIsPricingOpen(true)}
-                  className="px-8 py-4 bg-[#1A1A2E] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#1A1A2E] hover:bg-[#4FC3F7] hover:border-[#4FC3F7] transition-all flex items-center gap-2 shadow-md">
+                  className="px-8 py-4 bg-[#4FC3F7] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#4FC3F7] hover:bg-[#0288D1] hover:border-[#0288D1] transition-all flex items-center gap-2 shadow-md">
                   Upgrade naar Pro
                 </button>
               </div>
@@ -314,7 +314,7 @@ export default function InstellingenPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full md:w-auto px-16 py-5 bg-[#1A1A2E] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#4FC3F7] transition-all shadow-xl shadow-slate-200 disabled:opacity-70">
+              className="w-full md:w-auto px-16 py-5 bg-[#4FC3F7] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-[#0288D1] transition-all shadow-xl shadow-slate-200 disabled:opacity-70">
               {loading ? (
                 <Loader2 className="animate-spin mx-auto" />
               ) : (

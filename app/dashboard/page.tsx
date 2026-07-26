@@ -8,19 +8,13 @@ import {
   Activity,
   ChevronRight,
   Loader2,
-  FileDown,
-  CheckCircle2,
   Syringe,
   Pill,
   AlertTriangle,
-  ShieldCheck,
-  Info,
   Zap,
   Camera,
   PlusCircle,
 } from "lucide-react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { RapportPDF } from "@/components/RapportPDF";
 import { Progress } from "@/components/ui/progress";
 import { PricingModal } from "@/components/PricingModal";
 import { DogSwitcher } from "@/components/DogSwitcher";
@@ -122,7 +116,9 @@ function DashboardContent() {
     ? getTrialStatus(user.createdAt, trialEndsAt)
     : { progress: 0, daysLeft: 1, isExpired: false, msLeft: 0 };
 
-  const dogName = dog?.name || "Laden...";
+  const dogName = dog?.name
+    ? dog.name.charAt(0).toUpperCase() + dog.name.slice(1)
+    : "Laden...";
 
   useEffect(() => {
     async function initDashboard() {
@@ -311,14 +307,6 @@ function DashboardContent() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            {allDogs.length < 3 && (
-              <Link href="/onboarding">
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-[#4FC3F7] bg-[#4FC3F7]/10 hover:bg-[#4FC3F7] hover:text-white text-[#4FC3F7] font-black uppercase text-[10px] tracking-wider transition-all">
-                  <PlusCircle size={14} strokeWidth={2.5} />
-                  <span>Hond toevoegen</span>
-                </button>
-              </Link>
-            )}
             {!loading && (
               <>
                 {trial.isExpired && !isPro ? (
@@ -339,64 +327,8 @@ function DashboardContent() {
                 )}
               </>
             )}
-
-            {rapportData ? (
-              <PDFDownloadLink
-                document={
-                  <RapportPDF
-                    brief={rapportData.brief}
-                    details={rapportData.details}
-                    dogName={dogName}
-                  />
-                }
-                fileName={`Rapport_${dogName}.pdf`}
-                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-wider text-white shadow-sm hover:bg-emerald-600">
-                <CheckCircle2 size={14} /> Rapport
-              </PDFDownloadLink>
-            ) : (
-              <button
-                onClick={genereerRapportData}
-                disabled={isGenerating || loading}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#1A1A2E] rounded-xl text-[10px] font-black uppercase tracking-wider text-white shadow-sm hover:bg-slate-800 disabled:opacity-50">
-                {isGenerating ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <FileDown size={14} />
-                )}
-                {isGenerating ? "Laden..." : "PDF Rapport"}
-              </button>
-            )}
           </div>
         </header>
-
-        {!loading && (
-          <section className="mb-8 text-left">
-            {totalScans === 0 ? (
-              <Link href={`/dashboard/scan?dogId=${dogIdFromUrl || dog?.id}`}>
-                <div className="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex items-start gap-3 shadow-sm hover:border-[#4FC3F7] transition-all cursor-pointer">
-                  <Camera className="text-slate-400 shrink-0" size={20} />
-                  <p className="text-xs md:text-sm text-slate-600 font-medium">
-                    Nog geen scans voor <strong>{dogName}</strong>. Maak je eerste scan om de gezondheid te checken.
-                  </p>
-                </div>
-              </Link>
-            ) : dossierAlerts.length > 0 ? (
-              <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3 shadow-sm">
-                <AlertTriangle className="text-orange-600 shrink-0" size={20} />
-                <p className="text-xs md:text-sm text-orange-900 font-medium">
-                  Het lijkt erop dat <strong>{dogName}</strong> ergens last van heeft. Laat dit beoordelen door een arts.
-                </p>
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3 shadow-sm">
-                <ShieldCheck className="text-blue-600 shrink-0" size={20} />
-                <p className="text-xs md:text-sm text-blue-900 font-medium">
-                  Alles ziet er goed uit bij <strong>{dogName}</strong>!
-                </p>
-              </div>
-            )}
-          </section>
-        )}
 
         <section className="mb-8 md:mb-10 text-left">
           <h2 className="text-md md:text-lg font-bold text-[#111827] mb-3 md:mb-4 tracking-tight text-left">
@@ -405,10 +337,18 @@ function DashboardContent() {
           <div className="space-y-2">
             {loading ? (
               <Loader2 className="animate-spin text-[#4FC3F7]" size={24} />
+            ) : totalScans === 0 ? (
+              <Link href={`/dashboard/scan?dogId=${dogIdFromUrl || dog?.id}`}>
+                <div className="p-4 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-slate-50/50 flex items-center gap-3 text-xs hover:border-[#4FC3F7] hover:text-[#4FC3F7] transition-all">
+                  <Activity size={16} className="shrink-0" />
+                  {`Nog geen analyses voor ${dogName}, maak je eerste scan om de gezondheid te checken.`}
+                </div>
+              </Link>
             ) : dossierAlerts.length === 0 ? (
-              <div className="p-4 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-slate-50/50 flex items-center gap-3 italic text-xs text-left">
-                <Info size={16} className="text-slate-400" /> Geen actieve
-                meldingen gevonden.
+              <div className="p-4 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-slate-50/50 flex items-center gap-3 text-xs">
+                <Activity size={16} className="text-slate-400 shrink-0" /> Alles
+                ziet er goed uit bij <strong className="ml-1">{dogName}</strong>
+                !
               </div>
             ) : (
               dossierAlerts.map((item) => (
@@ -461,7 +401,7 @@ function DashboardContent() {
                     {eerstvolgendeVac ? eerstvolgendeVac.type : "Geen planning"}
                   </p>
                 </div>
-                <div className="text-right ml-2 text-left">
+                <div className="text-right ml-2">
                   <p className="text-[8px] font-black uppercase text-slate-400">
                     Datum
                   </p>
@@ -497,7 +437,7 @@ function DashboardContent() {
                       {actieveMedicatie.naam}
                     </p>
                   </div>
-                  <div className="text-right ml-2 text-left">
+                  <div className="text-right ml-2">
                     <p className="text-[8px] font-black uppercase text-slate-400">
                       Schema
                     </p>
@@ -507,7 +447,7 @@ function DashboardContent() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-[54px] border border-dashed border-slate-200 rounded-lg bg-white/50 text-slate-400 italic text-xs text-left">
+                <div className="flex items-center justify-center h-13.5 border border-dashed border-slate-200 rounded-lg bg-white/50 text-slate-400 italic text-xs text-left">
                   Geen actieve kuren
                 </div>
               )}

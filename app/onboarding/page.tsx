@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Camera,
   ArrowRight,
   ShieldCheck,
   ChevronRight,
   Loader2,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,16 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [heeftBestaandeHonden, setHeeftBestaandeHonden] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/dogs")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setHeeftBestaandeHonden(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -110,7 +121,7 @@ export default function OnboardingPage() {
               <Button
                 onClick={nextStep}
                 disabled={!formData.name}
-                className="w-full py-8 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl text-lg shadow-[0_6px_0_0_#4FC3F7]">
+                className="w-full py-8 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl text-lg">
                 Volgende <ArrowRight className="ml-2" />
               </Button>
             </div>
@@ -150,7 +161,7 @@ export default function OnboardingPage() {
               </div>
               <Button
                 onClick={nextStep}
-                className="w-full py-6 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#4FC3F7]">
+                className="w-full py-6 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl">
                 Opslaan & Doorgaan
               </Button>
             </div>
@@ -182,7 +193,7 @@ export default function OnboardingPage() {
               </div>
               <Button
                 onClick={nextStep}
-                className="w-full py-6 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#4FC3F7]">
+                className="w-full py-6 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl">
                 Volgende
               </Button>
             </div>
@@ -191,8 +202,8 @@ export default function OnboardingPage() {
           {/* STAP 4: LEEFTIJD & GEWICHT (GECOMBINEERD) */}
           {step === 4 && (
             <div className="space-y-6 animate-in fade-in">
-              <h1 className="text-4xl font-black uppercase tracking-tighter leading-none text-[#4FC3F7]">
-                Stats van {formData.name}
+              <h1 className="text-4xl font-black uppercase tracking-tighter leading-none text-[#1A1A2E]">
+                Stats van <span className="text-[#4FC3F7]">{formData.name}</span>
               </h1>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -227,7 +238,7 @@ export default function OnboardingPage() {
               <Button
                 onClick={nextStep}
                 disabled={!formData.age || !formData.weight}
-                className="w-full py-8 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#4FC3F7]">
+                className="w-full py-8 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl">
                 Volgende
               </Button>
             </div>
@@ -236,8 +247,8 @@ export default function OnboardingPage() {
           {/* STAP 5: GESLACHT & STERILISATIE (GECOMBINEERD) */}
           {step === 5 && (
             <div className="space-y-6 animate-in fade-in">
-              <h1 className="text-4xl font-black uppercase tracking-tighter leading-none text-[#4FC3F7]">
-                Gezondheid
+              <h1 className="text-4xl font-black uppercase tracking-tighter leading-none text-[#1A1A2E]">
+                Welk geslacht is <span className="text-[#4FC3F7]">{formData.name}?</span>
               </h1>
               <div className="space-y-4">
                 <div className="flex gap-2">
@@ -271,7 +282,7 @@ export default function OnboardingPage() {
               <Button
                 onClick={nextStep}
                 disabled={!formData.gender || !formData.sterilized}
-                className="w-full py-8 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#4FC3F7]">
+                className="w-full py-8 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl">
                 Volgende
               </Button>
             </div>
@@ -281,21 +292,27 @@ export default function OnboardingPage() {
           {step === 6 && (
             <div className="animate-in zoom-in-95 border-4 border-[#1A1A2E] p-6 rounded-3xl bg-white shadow-[12px_12px_0_0_#4FC3F7] space-y-4">
               <div className="text-center">
-                <ShieldCheck
-                  className="mx-auto text-[#4FC3F7] mb-2"
-                  size={40}
-                />
+                {heeftBestaandeHonden ? (
+                  <PlusCircle className="mx-auto text-[#4FC3F7] mb-2" size={40} />
+                ) : (
+                  <ShieldCheck className="mx-auto text-[#4FC3F7] mb-2" size={40} />
+                )}
                 <h2 className="text-2xl font-black uppercase tracking-tighter leading-tight">
-                  Activeer gratis proefperiode <br /> voor {formData.name}
+                  {heeftBestaandeHonden
+                    ? <>{formData.name} toevoegen</>
+                    : <>Activeer gratis proefperiode <br /> voor {formData.name}</>
+                  }
                 </h2>
               </div>
 
               <Button
                 onClick={handleFinish}
                 disabled={isSubmitting}
-                className="w-full py-7 bg-[#4FC3F7] hover:bg-[#1A1A2E] text-white font-black uppercase rounded-2xl text-lg shadow-[0_6px_0_0_#1A1A2E]">
+                className="w-full py-7 bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase rounded-2xl text-lg">
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" />
+                ) : heeftBestaandeHonden ? (
+                  "Toevoegen"
                 ) : (
                   "Start nu gratis"
                 )}

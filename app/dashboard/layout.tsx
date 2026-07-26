@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Menu } from "lucide-react";
 import { PricingModal } from "@/components/PricingModal";
+import { FeedbackButton } from "@/components/FeedbackButton";
 
 export default function DashboardLayout({
   children,
@@ -69,6 +70,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           <div className="p-6 lg:p-10">{children}</div>
+          <FeedbackButton />
         </main>
       </div>
     </SidebarProvider>
