@@ -272,7 +272,7 @@ export default function OnboardingPage() {
                 onClick={nextStep}
                 disabled={!formData.gender || !formData.sterilized}
                 className="w-full py-8 bg-[#1A1A2E] text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#4FC3F7]">
-                Check resultaat
+                Volgende
               </Button>
             </div>
           )}
@@ -286,17 +286,10 @@ export default function OnboardingPage() {
                   size={40}
                 />
                 <h2 className="text-2xl font-black uppercase tracking-tighter leading-tight">
-                  Activeer trial <br /> voor {formData.name}
+                  Activeer gratis trial <br /> voor {formData.name}
                 </h2>
               </div>
-              <div className="bg-[#F8FAFC] p-4 rounded-xl border-2 border-slate-100 flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase text-slate-400">
-                  Totaal vandaag
-                </span>
-                <span className="text-xl font-black text-emerald-500">
-                  €0,00
-                </span>
-              </div>
+
               <Button
                 onClick={handleFinish}
                 disabled={isSubmitting}
