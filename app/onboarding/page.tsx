@@ -164,7 +164,7 @@ export default function OnboardingPage() {
               </h1>
               <input
                 value={formData.breed}
-                placeholder="RAS (BIJV. LABRADOR)"
+                placeholder="RAS (BIJV. LABRADOR of MIX)"
                 className="w-full p-4 border-4 border-[#1A1A2E] rounded-xl font-black uppercase outline-none focus:border-[#4FC3F7]"
                 onChange={(e) =>
                   setFormData({ ...formData, breed: e.target.value })
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
                   size={40}
                 />
                 <h2 className="text-2xl font-black uppercase tracking-tighter leading-tight">
-                  Activeer gratis trial <br /> voor {formData.name}
+                  Activeer gratis proefperiode <br /> voor {formData.name}
                 </h2>
               </div>
 
