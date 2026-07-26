@@ -53,8 +53,8 @@ export function FeedbackButton() {
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="text-slate-300 hover:text-slate-500 transition-colors">
-              <X size={16} />
+              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-red-100 hover:text-red-500 text-slate-400 transition-all flex items-center justify-center">
+              <X size={14} strokeWidth={2.5} />
             </button>
           </div>
 
@@ -118,9 +118,13 @@ export function FeedbackButton() {
       {/* Verticale tab */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="bg-[#4FC3F7] hover:bg-[#0288D1] text-white font-black uppercase text-[10px] tracking-widest transition-all rounded-l-xl px-2 py-4 writing-mode-vertical"
-        style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)" }}>
-        Feedback
+        className="bg-[#4FC3F7] hover:bg-[#0288D1] text-white transition-all rounded-l-xl flex items-center justify-center shrink-0"
+        style={{ width: "32px", height: "110px" }}>
+        <span
+          className="font-black uppercase text-[10px] tracking-widest whitespace-nowrap"
+          style={{ transform: "rotate(-90deg)" }}>
+          Feedback
+        </span>
       </button>
     </div>
   );
