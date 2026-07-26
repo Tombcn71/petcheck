@@ -166,7 +166,7 @@ export default function InstellingenPage() {
               <h2 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#4FC3F7]">
                 <Lock size={14} /> Beveiliging
               </h2>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
                   Wachtwoord
                 </label>
@@ -178,6 +178,16 @@ export default function InstellingenPage() {
                   <ExternalLink
                     size={16}
                     className="text-slate-300 group-hover:text-[#4FC3F7] transition-colors"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openUserProfile()}
+                  className="w-full p-4 bg-white border-2 border-red-100 rounded-2xl font-bold text-red-500 hover:bg-red-50 hover:border-red-300 transition-all flex items-center justify-between text-sm group">
+                  Account verwijderen
+                  <ExternalLink
+                    size={16}
+                    className="text-red-300 group-hover:text-red-500 transition-colors"
                   />
                 </button>
               </div>
