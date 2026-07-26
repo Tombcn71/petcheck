@@ -16,6 +16,7 @@ import {
 
 // Importeer hier je PricingModal component (pas het pad aan naar waar jouw bestand staat)
 import { PricingModal } from "@/components/PricingModal";
+import { TRIAL_DAYS } from "@/app/trial-config";
 
 export default function InstellingenPage() {
   const { user, isLoaded } = useUser();
@@ -25,6 +26,14 @@ export default function InstellingenPage() {
   const [stripeLoading, setStripeLoading] = useState(false);
   const [initialFetchLoading, setInitialFetchLoading] = useState(true);
   const [isPricingOpen, setIsPricingOpen] = useState(false); // Staat om de modal te openen/sluiten
+
+  const isPro = user?.publicMetadata?.role === "pro";
+  const trialEndsAt = user?.publicMetadata?.trialEndsAt as string | undefined;
+  const signupDate = user?.createdAt ? new Date(user.createdAt).getTime() : Date.now();
+  const trialEndDate = trialEndsAt
+    ? new Date(trialEndsAt)
+    : new Date(signupDate + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const trialExpired = !isPro && trialEndDate.getTime() < Date.now();
 
   const [settings, setSettings] = useState({
     name: "",
@@ -181,8 +190,8 @@ export default function InstellingenPage() {
               <CreditCard size={14} /> Facturatie
             </h2>
 
-            {settings.planStatus === "pro" ? (
-              /* PRO LAYOUT */
+            {isPro ? (
+              /* PRO */
               <div className="p-8 bg-emerald-50/60 border-2 border-emerald-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-emerald-500">
@@ -190,16 +199,11 @@ export default function InstellingenPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">
-                        DoggyScan Pro
-                      </p>
-                      <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
-                        Actief
-                      </span>
+                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">DoggyScan Pro</p>
+                      <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Actief</span>
                     </div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                      Je hebt onbeperkt toegang tot alle medische scans en
-                      rapporten.
+                      Je hebt onbeperkt toegang tot alle medische scans en rapporten.
                     </p>
                   </div>
                 </div>
@@ -208,17 +212,35 @@ export default function InstellingenPage() {
                   onClick={openStripePortal}
                   disabled={stripeLoading}
                   className="px-8 py-4 bg-white text-[#1A1A2E] font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-emerald-100 hover:bg-emerald-50 transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm">
-                  {stripeLoading ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : (
-                    <>
-                      <ExternalLink size={14} /> Abonnement Beheren
-                    </>
-                  )}
+                  {stripeLoading ? <Loader2 className="animate-spin" size={14} /> : <><ExternalLink size={14} /> Abonnement Beheren</>}
+                </button>
+              </div>
+            ) : !trialExpired ? (
+              /* TRIAL ACTIEF */
+              <div className="p-8 bg-blue-50/60 border-2 border-blue-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-blue-400">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">DoggyScan Trial</p>
+                      <span className="bg-blue-400 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Actief</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                      Gratis toegang tot {trialEndDate.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPricingOpen(true)}
+                  className="px-8 py-4 bg-[#1A1A2E] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#1A1A2E] hover:bg-[#4FC3F7] hover:border-[#4FC3F7] transition-all flex items-center gap-2 shadow-md">
+                  Upgrade naar Pro
                 </button>
               </div>
             ) : (
-              /* GRATIS LAYOUT (OPENT PRICING MODAL) */
+              /* TRIAL VERLOPEN */
               <div className="p-8 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-400">
@@ -226,22 +248,17 @@ export default function InstellingenPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">
-                        DoggyScan Gratis
-                      </p>
-                      <span className="bg-slate-200 text-slate-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
-                        Beperkt
-                      </span>
+                      <p className="text-sm font-black text-[#1A1A2E] uppercase tracking-widest">DoggyScan Gratis</p>
+                      <span className="bg-slate-200 text-slate-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Trial verlopen</span>
                     </div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                      Upgrade naar Pro for onbeperkte scans en officiële
-                      PDF-rapporten.
+                      Upgrade naar Pro voor onbeperkte scans en officiële PDF-rapporten.
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsPricingOpen(true)} // Zet hier de modal op open!
+                  onClick={() => setIsPricingOpen(true)}
                   className="px-8 py-4 bg-[#1A1A2E] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl border-2 border-[#1A1A2E] hover:bg-[#4FC3F7] hover:border-[#4FC3F7] transition-all flex items-center gap-2 shadow-md">
                   Upgrade naar Pro
                 </button>
