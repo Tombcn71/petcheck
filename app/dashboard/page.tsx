@@ -17,6 +17,7 @@ import {
   Info,
   Zap,
   Camera,
+  PlusCircle,
 } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RapportPDF } from "@/components/RapportPDF";
@@ -103,6 +104,7 @@ function DashboardContent() {
   const [allDogs, setAllDogs] = useState<any[]>([]);
   const [dog, setDog] = useState<any>(null);
   const [dossierAlerts, setDossierAlerts] = useState<DossierItem[]>([]);
+  const [totalScans, setTotalScans] = useState<number | null>(null);
   const [vaccinaties, setVaccinaties] = useState<Vaccinatie[]>([]);
   const [medicaties, setMedicaties] = useState<Medicatie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,11 +179,9 @@ function DashboardContent() {
           const vacData = await vacRes.json().catch(() => []);
           const medData = await medRes.json().catch(() => []);
 
-          setDossierAlerts(
-            Array.isArray(scansData)
-              ? scansData.filter((item: any) => !item.is_ok)
-              : [],
-          );
+          const alleScans = Array.isArray(scansData) ? scansData : [];
+          setTotalScans(alleScans.length);
+          setDossierAlerts(alleScans.filter((item: any) => !item.is_ok));
           setVaccinaties(Array.isArray(vacData) ? vacData : []);
           setMedicaties(Array.isArray(medData) ? medData : []);
         }
@@ -311,6 +311,14 @@ function DashboardContent() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {allDogs.length < 3 && (
+              <Link href="/onboarding">
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-[#4FC3F7] bg-[#4FC3F7]/10 hover:bg-[#4FC3F7] hover:text-white text-[#4FC3F7] font-black uppercase text-[10px] tracking-wider transition-all">
+                  <PlusCircle size={14} strokeWidth={2.5} />
+                  <span>Hond toevoegen</span>
+                </button>
+              </Link>
+            )}
             {!loading && (
               <>
                 {trial.isExpired && !isPro ? (
@@ -363,12 +371,20 @@ function DashboardContent() {
 
         {!loading && (
           <section className="mb-8 text-left">
-            {dossierAlerts.length > 0 ? (
+            {totalScans === 0 ? (
+              <Link href={`/dashboard/scan?dogId=${dogIdFromUrl || dog?.id}`}>
+                <div className="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex items-start gap-3 shadow-sm hover:border-[#4FC3F7] transition-all cursor-pointer">
+                  <Camera className="text-slate-400 shrink-0" size={20} />
+                  <p className="text-xs md:text-sm text-slate-600 font-medium">
+                    Nog geen scans voor <strong>{dogName}</strong>. Maak je eerste scan om de gezondheid te checken.
+                  </p>
+                </div>
+              </Link>
+            ) : dossierAlerts.length > 0 ? (
               <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3 shadow-sm">
                 <AlertTriangle className="text-orange-600 shrink-0" size={20} />
                 <p className="text-xs md:text-sm text-orange-900 font-medium">
-                  Het lijkt erop dat <strong>{dogName}</strong> ergens last van
-                  heeft. Laat dit beoordelen door een arts.
+                  Het lijkt erop dat <strong>{dogName}</strong> ergens last van heeft. Laat dit beoordelen door een arts.
                 </p>
               </div>
             ) : (

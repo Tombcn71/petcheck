@@ -61,17 +61,9 @@ export function DogSwitcher({ allDogs = [], dogIdFromUrl }: DogSwitcherProps) {
       {allDogs.length < 3 && (
         <Link
           href="/onboarding"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 hover:border-[#4FC3F7] transition-all text-slate-400 group h-[46px]">
-          <div className="h-8 w-8 rounded-lg border border-dashed border-slate-200 flex items-center justify-center shrink-0 group-hover:border-[#4FC3F7] bg-white">
-            <Plus
-              size={14}
-              strokeWidth={2.5}
-              className="group-hover:text-[#4FC3F7]"
-            />
-          </div>
-          <span className="text-xs group-hover:text-[#4FC3F7] hidden sm:inline">
-            Hond toevoegen
-          </span>
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-[#4FC3F7] bg-[#4FC3F7]/10 hover:bg-[#4FC3F7] hover:text-white transition-all text-[#4FC3F7] group font-bold text-xs">
+          <Plus size={14} strokeWidth={2.5} />
+          Hond toevoegen
         </Link>
       )}
     </div>
