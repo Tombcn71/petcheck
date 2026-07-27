@@ -12,8 +12,9 @@ import {
   Settings,
   PawPrint,
   Loader2,
-  ShieldCheck,
+  Smartphone,
 } from "lucide-react";
+import { InstallModal } from "@/components/InstallModal";
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +40,7 @@ function SidebarContentInternal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const [showInstall, setShowInstall] = useState(false);
 
   const [fallbackDogId, setFallbackDogId] = useState<string | undefined>(
     undefined,
@@ -86,6 +88,18 @@ function SidebarContentInternal() {
             );
           })}
         </SidebarMenu>
+
+        {/* Installeer app knop */}
+        <div className="pt-4 border-t border-slate-100 mt-2">
+          <button
+            onClick={() => setShowInstall(true)}
+            className="w-full h-11 flex items-center gap-3 px-4 rounded-xl text-slate-400 hover:text-[#4FC3F7] hover:bg-blue-50 transition-colors">
+            <Smartphone size={20} />
+            <span className="text-sm font-bold">Installeer app</span>
+          </button>
+        </div>
+
+        <InstallModal isOpen={showInstall} onClose={() => setShowInstall(false)} />
       </SidebarContent>
     </>
   );
