@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, MessageSquare, Lock } from "lucide-react";
+import { Loader2, MessageSquare, Lock, Mail } from "lucide-react";
 
 const categorieLabelMap: Record<string, string> = {
   bug: "🐛 Bug",
@@ -71,9 +71,18 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <p className="text-sm font-bold text-[#1A1A2E] leading-relaxed">{item.bericht}</p>
-                {item.user_email && (
-                  <p className="text-[10px] text-slate-400 font-bold">{item.user_email}</p>
-                )}
+                <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+                  {item.user_email && (
+                    <p className="text-[10px] text-slate-400 font-bold">{item.user_email}</p>
+                  )}
+                  {item.mag_reageren && item.user_email && (
+                    <a
+                      href={`mailto:${item.user_email}?from=info@doggyscan.nl&subject=Reactie op jouw feedback (Doggyscan)&body=Hoi,%0A%0ABedankt voor je feedback!%0A%0A---%0AJouw bericht:%0A"${encodeURIComponent(item.bericht)}"%0A---`}
+                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#4FC3F7]/10 text-[#0288D1] hover:bg-[#4FC3F7]/20 px-3 py-1.5 rounded-full transition-colors">
+                      <Mail size={11} /> Reageren
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
