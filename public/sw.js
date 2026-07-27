@@ -1,49 +1,71 @@
-self.addEventListener("push", function (event) {
-  if (event.data) {
-    try {
-      const data = event.data.json();
-      const options = {
+const CACHE = "doggyscan-v1";
+const OFFLINE_URL = "/";
+
+// Bij installatie: cache de shell
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) =>
+      cache.addAll([OFFLINE_URL, "/icons/icon-192x192.png", "/icons/icon-512x512.png"])
+    )
+  );
+  self.skipWaiting();
+});
+
+// Bij activatie: oude caches opruimen
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch: network-first, val terug op cache
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  if (event.request.url.includes("/api/")) return; // API nooit cachen
+
+  event.respondWith(
+    fetch(event.request)
+      .then((res) => {
+        const clone = res.clone();
+        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match(OFFLINE_URL)))
+  );
+});
+
+// Push notificaties
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  try {
+    const data = event.data.json();
+    event.waitUntil(
+      self.registration.showNotification(data.title || "Doggyscan", {
         body: data.body,
         icon: data.icon || "/icons/icon-192x192.png",
-        badge: "/icons/badge-72x72.png", // Gebruik idealiter een kleiner, monochroom icoon voor de badge
-        vibrate: [100, 50, 100], // Laat de telefoon trillen voor extra aandacht
-        data: {
-          url: data.url || "https://doggyscan.nl/dashboard", // Geef een specifieke URL mee vanuit de server
-        },
-      };
-
-      event.waitUntil(
-        self.registration.showNotification(
-          data.title || "Doggyscan Update",
-          options,
-        ),
-      );
-    } catch (e) {
-      console.error("Fout bij het parsen van push data:", e);
-    }
+        badge: "/icons/icon-192x192.png",
+        vibrate: [100, 50, 100],
+        data: { url: data.url || "https://doggyscan.nl/dashboard" },
+      })
+    );
+  } catch (e) {
+    console.error("Push fout:", e);
   }
 });
 
-self.addEventListener("notificationclick", function (event) {
-  const notification = event.notification;
-  const targetUrl = notification.data.url; // Haal de URL op uit de meegestuurde data
-
-  notification.close();
-
+// Notificatie klik
+self.addEventListener("notificationclick", (event) => {
+  const url = event.notification.data?.url || "/dashboard";
+  event.notification.close();
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        // Als de app al open staat in een tabblad, focus daar dan op...
-        for (const client of clientList) {
-          if (client.url === targetUrl && "focus" in client) {
-            return client.focus();
-          }
-        }
-        // ...anders open een nieuw venster
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      }),
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if (client.url === url && "focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
   );
 });

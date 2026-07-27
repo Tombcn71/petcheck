@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { nlNL } from "@clerk/localizations";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -69,6 +70,7 @@ export default function RootLayout({
             <Navbar />
             <main>{children}</main>
             <InstallPrompt />
+            <CookieBanner />
           </TooltipProvider>
         </body>
       </html>

@@ -66,6 +66,10 @@ export async function GET(req: Request) {
       ],
       locale: "nl",
       mode: "subscription",
+      automatic_tax: { enabled: true },
+
+      billing_address_collection: "required",
+
       success_url: `${origin}/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#pricing`,
       allow_promotion_codes: true,

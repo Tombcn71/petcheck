@@ -11,6 +11,13 @@ export function InstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(true); // default true to avoid flash
 
   useEffect(() => {
+    // Service worker registreren
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) =>
+        console.error("SW registratie mislukt:", err)
+      );
+    }
+
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as any).standalone === true;
