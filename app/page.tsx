@@ -185,6 +185,12 @@ export default function Home() {
             </span>
           </Link>
 
+          {/* LINKS */}
+          <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Link href="/privacy" className="hover:text-[#4FC3F7]">Privacybeleid</Link>
+            <Link href="/voorwaarden" className="hover:text-[#4FC3F7]">Algemene Voorwaarden</Link>
+          </div>
+
           {/* DE TEKST */}
           <div className="max-w-md mx-auto">
             <p className="text-[#AAAAAA] text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
