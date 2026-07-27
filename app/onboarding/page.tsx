@@ -24,10 +24,13 @@ export default function OnboardingPage() {
     fetch("/api/dogs")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) setHeeftBestaandeHonden(true);
+        if (Array.isArray(data) && data.length > 0) {
+          setHeeftBestaandeHonden(true);
+          router.replace("/dashboard");
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const [formData, setFormData] = useState({
     name: "",
