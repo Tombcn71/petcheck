@@ -303,7 +303,7 @@ export default function OnboardingPage() {
                 <h2 className="text-2xl font-black uppercase tracking-tighter leading-tight">
                   {heeftBestaandeHonden
                     ? <>{formData.name} toevoegen</>
-                    : <>Activeer gratis proefperiode <br /> voor {formData.name}</>
+                    : <>Activeer gratis proefperiode <br /> voor <span className="text-[#4FC3F7]">{formData.name}</span></>
                   }
                 </h2>
               </div>
