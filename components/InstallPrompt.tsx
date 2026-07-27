@@ -29,10 +29,11 @@ export function InstallPrompt() {
     const dismissed = localStorage.getItem(DISMISSED_KEY);
     if (dismissed) return;
 
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIOS =
+      /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-    if (isIOS && isSafari) {
+    if (isIOS) {
       setShowIOSPrompt(true);
       return;
     }
@@ -99,19 +100,17 @@ export function InstallPrompt() {
           <h4 className="font-black text-[#1A1A2E] text-sm uppercase tracking-tight">
             Installeer op je iPhone
           </h4>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Gebruik Doggyscan als een echte app:
+          <p className="text-xs text-gray-500 leading-relaxed mb-1">
+            Open deze pagina in <strong>Safari</strong> en volg deze stappen:
           </p>
           <ol className="text-xs text-gray-700 space-y-2">
             <li className="flex items-center gap-2">
-              <span className="bg-gray-100 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold">1</span>
-              Tik onderin op de deel-knop <Share size={16} className="text-blue-500" />
+              <span className="bg-[#4FC3F7]/20 text-[#0288D1] w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">1</span>
+              Tik onderin op de deel-knop <Share size={15} className="text-blue-500 shrink-0" />
             </li>
             <li className="flex items-center gap-2">
-              <span className="bg-gray-100 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold">2</span>
-              Scroll naar beneden en tik op{" "}
-              <span className="font-bold underline">Zet op beginscherm</span>{" "}
-              <PlusSquare size={16} />
+              <span className="bg-[#4FC3F7]/20 text-[#0288D1] w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">2</span>
+              Tik op <span className="font-bold">Zet op beginscherm</span> <PlusSquare size={15} className="shrink-0" />
             </li>
           </ol>
           <button
