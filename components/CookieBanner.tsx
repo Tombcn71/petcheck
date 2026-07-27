@@ -31,6 +31,10 @@ export function CookieBanner() {
           Wij gebruiken cookies om de app goed te laten werken en je ervaring te verbeteren. Lees meer in ons{" "}
           <Link href="/privacy" className="text-[#4FC3F7] hover:underline">
             privacybeleid
+          </Link>{" "}
+          en onze{" "}
+          <Link href="/voorwaarden" className="text-[#4FC3F7] hover:underline">
+            algemene voorwaarden
           </Link>
           .
         </p>
