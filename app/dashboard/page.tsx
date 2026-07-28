@@ -341,7 +341,7 @@ function DashboardContent() {
               <Link href={`/dashboard/scan?dogId=${dogIdFromUrl || dog?.id}`}>
                 <div className="p-4 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-slate-50/50 flex items-center gap-3 text-xs hover:border-[#4FC3F7] hover:text-[#4FC3F7] transition-all">
                   <Activity size={16} className="shrink-0" />
-                  {`Nog geen analyses voor ${dogName}, maak je eerste scan om de gezondheid te checken.`}
+                  {`Nog geen analyses voor ${dogName}, maak je eerste scan om het welzijn van je hond te checken.`}
                 </div>
               </Link>
             ) : dossierAlerts.length === 0 ? (

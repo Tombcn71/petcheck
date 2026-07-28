@@ -12,7 +12,7 @@ export default function SignUpPage() {
 
         <div className="flex flex-col gap-3 items-center">
           <p className="text-slate-500 font-medium text-sm">
-            Maak een account aan en scan direct de gezondheid van je hond.
+            Maak een account aan en scan direct het welzijn van je hond.
           </p>
 
           {/* De "Geruststellings" Badge - Nu met 'betaalgegevens' */}
