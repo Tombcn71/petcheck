@@ -104,27 +104,31 @@ export default function Home() {
           ondersteuning voor elke hondenbezitter, 24/7 beschikbaar.{" "}
         </p>
 
-        <div className="flex justify-center items-center gap-4">
-          <Show when="signed-out">
-            <Link href="/signup?redirect_url=/onboarding">
-              {" "}
-              <Button
-                size="lg"
-                className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
-                Start Gratis Week <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </Show>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex justify-center items-center gap-4">
+            <Show when="signed-out">
+              <Link href="/signup?redirect_url=/onboarding">
+                <Button
+                  size="lg"
+                  className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
+                  Start Gratis Week <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </Show>
 
-          <Show when="signed-in">
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
-                Naar mijn Dashboard <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </Show>
+            <Show when="signed-in">
+              <Link href="/dashboard">
+                <Button
+                  size="lg"
+                  className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
+                  Naar mijn Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </Show>
+          </div>
+          <p className="text-[11px] text-slate-400 font-semibold">
+            💳 Geen betaalgegevens nodig&nbsp;&nbsp;|&nbsp;&nbsp;⚡ Direct uitslag&nbsp;&nbsp;|&nbsp;&nbsp;🔒 100% vrijblijvend
+          </p>
         </div>
       </main>
 
