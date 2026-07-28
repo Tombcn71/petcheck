@@ -39,28 +39,25 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
         </button>
 
         {/* Jaarlijkse kaart - zelfde als Pricing.tsx */}
-        <div className="bg-white rounded-[2rem] border-4 border-[#4FC3F7] p-6 flex flex-col relative text-center shadow-[8px_8px_0px_0px_rgba(79,195,247,0.4)]">
+        <div className="mt-6 bg-white rounded-[2rem] border-4 border-[#4FC3F7] p-6 flex flex-col relative text-center shadow-[8px_8px_0px_0px_rgba(79,195,247,0.4)]">
           {/* 50% EARLY BIRD BADGE */}
-          <div className="absolute -top-5 left-0 right-0 flex justify-center z-30">
+          <div className="flex justify-center mb-4">
             <div className="bg-[#01579B] text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl flex items-center gap-2 border-2 border-white">
               <Sparkles size={14} className="text-[#4FC3F7]" />
               50% early bird korting
             </div>
           </div>
 
-          <span className="text-[#4FC3F7] text-[11px] font-black uppercase tracking-[0.2em] mb-4 mt-2">
+          <span className="text-[#4FC3F7] text-[11px] font-black uppercase tracking-[0.2em] mb-4">
             Jaarlijks Plan
           </span>
 
           <div className="flex items-baseline justify-center gap-1 mb-2">
-            <span className="text-5xl font-black text-[#01579B]">€5</span>
-            <span className="text-[#4FC3F7] font-black text-lg">/mnd</span>
+            <span className="text-4xl font-black text-[#01579B]">€60</span>
+            <span className="text-[#4FC3F7] font-black text-lg">/jaar</span>
           </div>
 
-          <div className="mb-6 p-3 bg-[#F0F9FF] rounded-2xl border-2 border-dashed border-[#4FC3F7]/30">
-            <p className="text-[#01579B] font-black text-base uppercase">
-              €60 PER JAAR
-            </p>
+          <div className="mb-6">
             <p className="text-slate-500 text-sm font-black line-through decoration-2">
               NORMAAL €120
             </p>
@@ -99,20 +96,20 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
         {/* Privacy & Controle */}
         <div className="mt-4 text-center">
-          <div className="flex items-center justify-center gap-1.5 text-slate-300 mb-1">
-            <ShieldCheck size={11} className="text-slate-300" />
+          <div className="flex items-center justify-center gap-1.5 text-slate-500 mb-1">
+            <ShieldCheck size={11} className="text-slate-500" />
             <span className="text-[9px] font-bold uppercase tracking-wider">
               Privacy & Controle
             </span>
           </div>
-          <p className="text-[10px] text-slate-300 font-semibold leading-relaxed px-2">
+          <p className="text-[11px] text-slate-500 font-semibold leading-relaxed px-2">
             Geen behoefte om door te gaan? Je zit nergens aan vast. Je kunt je
             account en alle opgeslagen medische data op elk moment permanent
             vernietigen via de{" "}
             <Link
               href={`/dashboard/instellingen${dogId ? `?dogId=${dogId}` : ""}`}
               onClick={onClose}
-              className="text-slate-400 font-bold underline hover:text-[#1A1A2E] transition-colors">
+              className="text-slate-600 font-bold underline hover:text-[#1A1A2E] transition-colors">
               Instellingen
             </Link>
             .

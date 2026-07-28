@@ -72,15 +72,12 @@ export default function Pricing() {
             </span>
 
             <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="text-8xl font-black text-[#01579B]">€5</span>
-              <span className="text-[#4FC3F7] font-black text-2xl">/mnd</span>
+              <span className="text-6xl font-black text-[#01579B]">€60</span>
+              <span className="text-[#4FC3F7] font-black text-2xl">/jaar</span>
             </div>
 
-            <div className="mb-8 p-3 bg-[#F0F9FF] rounded-2xl border-2 border-dashed border-[#4FC3F7]/30">
-              <p className="text-[#01579B] font-black text-lg uppercase">
-                €60 PER JAAR
-              </p>
-              <p className="text-slate-500 text-base font-black line-through decoration-2">
+            <div className="mb-8">
+              <p className="text-slate-500 text-lg font-black line-through decoration-2">
                 NORMAAL €120
               </p>
             </div>
