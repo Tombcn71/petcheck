@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { nlNL } from "@clerk/localizations";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { CookieBanner } from "@/components/CookieBanner";
+import { TopBanner } from "@/components/TopBanner";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -67,6 +68,7 @@ export default function RootLayout({
         <body
           className={`${jakarta.variable} ${geistMono.variable} font-jakarta antialiased`}>
           <TooltipProvider delayDuration={0}>
+            <TopBanner />
             <Navbar />
             <main>{children}</main>
             <InstallPrompt />
