@@ -12,27 +12,27 @@ const faqs = [
   {
     question: "Welke 12 ziektebeelden kan de AI herkennen?",
     answer:
-      "Onze AI is getraind op duizenden klinische beelden en herkent onder andere huidinfecties, hotspots, teken/vlooien, oogontstekingen, tekenen van staar, oorproblemen en diverse huiduitslag. Het Basis plan geeft je toegang tot de volledige database.",
+      "AI is getraind op tienduizenden klinische beelden en herkent onder andere pijnsignalen, kan een ontlastingsanalyse doen, herkent houdingsproblemen, huidinfecties, hotspots, teken/vlooien, oogontstekingen, tekenen van staar, oorproblemen en diverse huiduitslag. Het pro plan geeft je toegang tot de volledige database.",
   },
   {
     question: "Vervangt deze app een bezoek aan de dierenarts?",
     answer:
-      "Nee, PetCheck is een preventief hulpmiddel. Het helpt je om symptomen vroegtijdig te herkennen en geeft je een medisch rapport dat je kunt delen met je dierenarts. Bij spoed moet je altijd direct contact opnemen met een specialist.",
+      "Nee, Doggyscan.nl is een preventief hulpmiddel. Het helpt je om symptomen vroegtijdig te herkennen en geeft je een medisch rapport dat je kunt delen met je dierenarts. Bij spoed moet je altijd direct contact opnemen met een specialist.",
   },
   {
     question: "Hoe nauwkeurig is de AI-scan?",
     answer:
-      "De nauwkeurigheid ligt momenteel boven de 90% voor de meest voorkomende huidaandoeningen. Voor een optimaal resultaat raden we aan om foto's te maken bij goed daglicht en scherp te stellen op het probleemgebied.",
+      "De nauwkeurigheid ligt momenteel boven de 90% voor de meest voorkomende hondenkwalen. Voor een optimaal resultaat raden we aan om foto's te maken bij goed daglicht en scherp te stellen op het probleemgebied.",
   },
   {
     question: "Can ik mijn abonnement op elk moment opzeggen?",
     answer:
-      "Zeker. We werken niet met wurgcontracten. Je kunt je Basis plan op elk moment met één klik stopzetten via je profielinstellingen. Je behoudt toegang tot je historie tot het einde van je factuurperiode.",
+      "Zeker. We werken niet met wurgcontracten. Je kunt plan op elk moment met één klik stopzetten via je profielinstellingen. Je behoudt toegang tot je historie tot het einde van je factuurperiode.",
   },
   {
     question: "Hoe werkt de optie voor meerdere honden?",
     answer:
-      "In het Basis plan betaal je een vast bedrag voor de eerste hond en een gereduceerd tarief (€5,00) voor elke extra hond. Zo blijft professionele zorg betaalbaar voor gezinnen met meerdere viervoeters.",
+      "In ons plan betaal je een vast bedrag je mag tot 3 honden toevoegen. Zo blijven analyses betaalbaar voor gezinnen met meerdere viervoeters.",
   },
 ];
 

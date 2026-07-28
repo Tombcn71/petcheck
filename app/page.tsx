@@ -95,13 +95,13 @@ export default function Home() {
         </Badge>
 
         <h1 className="text-4xl md:text-7xl font-black   mb-8">
-          AI Gezondheidsscan, <br />
-          <span className="text-[#4FC3F7] ">voor jouw doggy.</span>
+          Direct inzicht in het welzijn <br />
+          <span className="text-[#4FC3F7] ">van jouw doggy.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          Geavanceerde symptoom-analyse en automatische dossieropbouw. Slimme
-          ondersteuning voor elke hondenbezitter, 24/7 beschikbaar.{" "}
+          Voer binnen 2 minuten een AI symptoom-check uit. Ontvang direct
+          inzicht en bouw automatisch een welzijnsdossier van je doggy op.
         </p>
 
         <div className="flex flex-col items-center gap-3">
@@ -127,7 +127,8 @@ export default function Home() {
             </Show>
           </div>
           <p className="text-sm text-slate-500 font-bold">
-            💳 Geen betaalgegevens nodig&nbsp;&nbsp;|&nbsp;&nbsp;⚡ Direct uitslag&nbsp;&nbsp;|&nbsp;&nbsp;🔒 100% vrijblijvend
+            💳 Geen betaalgegevens nodig&nbsp;&nbsp;|&nbsp;&nbsp;⚡ Direct
+            uitslag&nbsp;&nbsp;|&nbsp;&nbsp;🔒 100% vrijblijvend
           </p>
         </div>
       </main>
@@ -191,8 +192,12 @@ export default function Home() {
 
           {/* LINKS */}
           <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            <Link href="/privacy" className="hover:text-[#4FC3F7]">Privacybeleid</Link>
-            <Link href="/voorwaarden" className="hover:text-[#4FC3F7]">Algemene Voorwaarden</Link>
+            <Link href="/privacy" className="hover:text-[#4FC3F7]">
+              Privacybeleid
+            </Link>
+            <Link href="/voorwaarden" className="hover:text-[#4FC3F7]">
+              Algemene Voorwaarden
+            </Link>
           </div>
 
           {/* DE TEKST */}

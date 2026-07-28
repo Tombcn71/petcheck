@@ -23,8 +23,9 @@ export function TopBanner() {
   return (
     <div className="w-full bg-[#1A1A2E] text-white text-center px-4 py-2.5 flex items-center justify-center gap-3 relative">
       <p className="text-xs font-black uppercase tracking-wide">
-        🏷️ Early Bird: Eerste groep baasjes krijgen{" "}
-        <span className="text-[#4FC3F7]">50% korting</span> op het jaarabonnement!{" "}
+        🏷️ Early Bird deal: Eerste groep baasjes krijgen{" "}
+        <span className="text-[#4FC3F7]">50% korting</span> op het
+        jaarabonnement!{" "}
         <Link
           href="/#pricing"
           className="underline underline-offset-2 hover:text-[#4FC3F7] transition-colors ml-1">
