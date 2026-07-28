@@ -104,7 +104,7 @@ export default function Home() {
           inzicht en bouw automatisch een welzijnsdossier van je doggy op.
         </p>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-5 -mt-4">
           <div className="flex justify-center items-center gap-4">
             <Show when="signed-out">
               <Link href="/signup?redirect_url=/onboarding">
@@ -120,15 +120,15 @@ export default function Home() {
               <Link href="/dashboard">
                 <Button
                   size="lg"
-                  className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
+                  className="bg-[#1A1A2E] hover:bg-black text-white px-8 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20 ">
                   Naar mijn Dashboard <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
             </Show>
           </div>
           <p className="text-sm text-slate-500 font-bold">
-            💳 Geen betaalgegevens nodig&nbsp;&nbsp;|&nbsp;&nbsp;⚡ Direct
-            uitslag&nbsp;&nbsp;|&nbsp;&nbsp;🔒 100% vrijblijvend
+            🔒 100% vrijblijvend&nbsp;&nbsp;|&nbsp;&nbsp;💳 Geen betaalgegevens
+            nodig
           </p>
         </div>
       </main>
@@ -145,7 +145,12 @@ export default function Home() {
               style={{ fontFamily: "'Syne', sans-serif" }}>
               Scan <span className="text-[#4FC3F7]">Mogelijkheden</span>
             </h2>
-            <div className="h-1.5 w-20 bg-[#4FC3F7] mx-auto rounded-full" />
+            <div className="h-1.5 w-20 bg-[#4FC3F7] mx-auto rounded-full mb-6" />
+            <p className="text-[#6B6B8A] max-w-[600px] mx-auto font-medium leading-relaxed">
+              We hebben nu 12 scanmogelijkheden. Ons team werkt continu aan
+              verbeteringen. Heb je een suggestie? We horen het graag! In het
+              dashboard kun je feedback geven.
+            </p>
           </header>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

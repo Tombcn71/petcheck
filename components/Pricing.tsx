@@ -47,7 +47,7 @@ export default function Pricing() {
           <p className="text-slate-500 font-bold text-lg leading-relaxed">
             {trialExpired
               ? "Je proefperiode is afgelopen. Activeer je account om direct weer scans te kunnen maken."
-              : "Ontdek wat AI voor de gezondheid van je hond kan betekenen."}
+              : "Ontdek wat AI voor het welzijn van je hond kan betekenen."}
             <span className="block text-[#0288D1] font-black text-sm mt-2 uppercase tracking-[0.2em]">
               {trialExpired
                 ? "Altijd opzegbaar • Direct actief"
