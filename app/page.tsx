@@ -126,7 +126,7 @@ export default function Home() {
               </Link>
             </Show>
           </div>
-          <p className="text-[11px] text-slate-500 font-bold">
+          <p className="text-sm text-slate-500 font-bold">
             💳 Geen betaalgegevens nodig&nbsp;&nbsp;|&nbsp;&nbsp;⚡ Direct uitslag&nbsp;&nbsp;|&nbsp;&nbsp;🔒 100% vrijblijvend
           </p>
         </div>
