@@ -95,13 +95,13 @@ export default function Home() {
         </Badge>
 
         <h1 className="text-4xl md:text-7xl font-black   mb-8">
-          Direct inzicht in het welzijn <br />
-          <span className="text-[#4FC3F7] ">van jouw doggy.</span>
+          AI Gezondheidsscan <br />
+          <span className="text-[#4FC3F7] ">voor jouw doggy.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          Voer binnen 2 minuten een AI symptoom-check uit. Ontvang direct
-          inzicht en bouw automatisch een welzijnsdossier van je doggy op.
+          Geavanceerde symptoom-analyse en automatische dossieropbouw. Slimme
+          ondersteuning voor elke hondenbezitter, 24/7 beschikbaar.
         </p>
 
         <div className="flex flex-col items-center gap-5 -mt-4">
