@@ -95,6 +95,29 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const dogIdFromUrl = searchParams.get("dogId") || "";
 
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const sessionId = searchParams.get("session_id");
+    if (status !== "success" || !sessionId) return;
+
+    const alGeteld = sessionStorage.getItem("fb-purchase-" + sessionId);
+    if (!alGeteld) {
+      window.fbq?.("track", "Purchase", {
+        value: Number(searchParams.get("value")) || 0,
+        currency: searchParams.get("currency") || "EUR",
+      });
+      sessionStorage.setItem("fb-purchase-" + sessionId, "1");
+    }
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("status");
+    params.delete("session_id");
+    params.delete("value");
+    params.delete("currency");
+    router.replace(`/dashboard?${params.toString()}`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [allDogs, setAllDogs] = useState<any[]>([]);
   const [dog, setDog] = useState<any>(null);
   const [dossierAlerts, setDossierAlerts] = useState<DossierItem[]>([]);

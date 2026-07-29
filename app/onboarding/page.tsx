@@ -66,6 +66,7 @@ export default function OnboardingPage() {
       });
 
       if (response.ok) {
+        window.fbq?.("track", "CompleteRegistration");
         window.location.href = "/dashboard";
       } else {
         const errorData = await response.json();

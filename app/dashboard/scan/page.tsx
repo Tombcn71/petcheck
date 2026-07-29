@@ -169,6 +169,10 @@ function ScanContent() {
 
   async function analyze(toolId: string, file: File) {
     if (trialExpired) return;
+    if (!localStorage.getItem("fb-lead-fired")) {
+      window.fbq?.("track", "Lead");
+      localStorage.setItem("fb-lead-fired", "1");
+    }
     setLoading((prev) => ({ ...prev, [toolId]: true }));
     const reader = new FileReader();
     reader.onload = async () => {

@@ -111,9 +111,17 @@ export default function Pricing() {
               <Link
                 href={
                   trialExpired
-                    ? "/api/stripe?priceId=JOUW_JAAR_PRICE_ID"
+                    ? "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW"
                     : "/signup?interval=year&dogs=3"
-                }>
+                }
+                onClick={() => {
+                  if (trialExpired) {
+                    window.fbq?.("track", "InitiateCheckout", {
+                      value: 60,
+                      currency: "EUR",
+                    });
+                  }
+                }}>
                 {trialExpired ? "Activeer Jaarlijks" : "Start Gratis Week"}
               </Link>
             </Button>

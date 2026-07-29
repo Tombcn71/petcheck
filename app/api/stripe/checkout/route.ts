@@ -70,7 +70,7 @@ export async function GET(req: Request) {
 
       billing_address_collection: "required",
 
-      success_url: `${origin}/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}&value=60&currency=EUR`,
       cancel_url: `${origin}/#pricing`,
       allow_promotion_codes: true,
       metadata: {

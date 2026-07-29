@@ -85,10 +85,14 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
           </ul>
 
           <button
-            onClick={() =>
-              (window.location.href =
-                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW")
-            }
+            onClick={() => {
+              window.fbq?.("track", "InitiateCheckout", {
+                value: 60,
+                currency: "EUR",
+              });
+              window.location.href =
+                "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW";
+            }}
             className="w-full h-16 rounded-2xl bg-[#01579B] hover:bg-[#4FC3F7] text-white font-black uppercase text-sm tracking-widest transition-all shadow-lg active:scale-95 border-none">
             Activeer Jaarplan
           </button>
