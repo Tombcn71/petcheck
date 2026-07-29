@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { PawPrint, ArrowRight, Sparkles } from "lucide-react"; // Of lucide-react
 import Pricing from "@/components/Pricing";
 import Faq from "@/components/Faq";
+import { genEventId } from "@/lib/eventId";
 
 const features = [
   {
@@ -111,7 +112,7 @@ export default function Home() {
                 href="/signup?redirect_url=/onboarding"
                 onClick={() => {
                   if (!localStorage.getItem("fb-lead-fired")) {
-                    const eventId = crypto.randomUUID();
+                    const eventId = genEventId();
                     window.fbq?.("track", "Lead", {}, { eventID: eventId });
                     fetch("/api/track", {
                       method: "POST",

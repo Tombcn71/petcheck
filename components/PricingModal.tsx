@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { X, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { genEventId } from "@/lib/eventId";
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -86,7 +87,7 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
           <button
             onClick={() => {
-              const eventId = crypto.randomUUID();
+              const eventId = genEventId();
               window.fbq?.(
                 "track",
                 "InitiateCheckout",

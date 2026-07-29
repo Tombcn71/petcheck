@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { genEventId } from "@/lib/eventId";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     setIsSubmitting(true);
-    const eventId = crypto.randomUUID();
+    const eventId = genEventId();
     try {
       const response = await fetch("/api/dogs", {
         method: "POST",

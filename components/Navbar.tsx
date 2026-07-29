@@ -14,6 +14,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Menu, PawPrint, X, Sparkles } from "lucide-react";
+import { genEventId } from "@/lib/eventId";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -63,7 +64,7 @@ export default function Navbar() {
                   href="/signup?redirect_url=/onboarding"
                   onClick={() => {
                     if (!localStorage.getItem("fb-lead-fired")) {
-                      const eventId = crypto.randomUUID();
+                      const eventId = genEventId();
                       window.fbq?.("track", "Lead", {}, { eventID: eventId });
                       fetch("/api/track", {
                         method: "POST",
@@ -138,7 +139,7 @@ export default function Navbar() {
                             href="/signup?redirect_url=/onboarding"
                             onClick={() => {
                               if (!localStorage.getItem("fb-lead-fired")) {
-                                const eventId = crypto.randomUUID();
+                                const eventId = genEventId();
                                 window.fbq?.("track", "Lead", {}, { eventID: eventId });
                                 fetch("/api/track", {
                                   method: "POST",

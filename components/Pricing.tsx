@@ -4,6 +4,7 @@ import { CheckCircle2, Sparkles, Gift, Zap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs"; // Toegevoegd voor trial check
+import { genEventId } from "@/lib/eventId";
 
 export default function Pricing() {
   const { user, isLoaded } = useUser();
@@ -116,7 +117,7 @@ export default function Pricing() {
                 }
                 onClick={() => {
                   if (trialExpired) {
-                    const eventId = crypto.randomUUID();
+                    const eventId = genEventId();
                     window.fbq?.(
                       "track",
                       "InitiateCheckout",
@@ -135,7 +136,7 @@ export default function Pricing() {
                       keepalive: true,
                     }).catch(() => {});
                   } else if (!localStorage.getItem("fb-lead-fired")) {
-                    const eventId = crypto.randomUUID();
+                    const eventId = genEventId();
                     window.fbq?.("track", "Lead", {}, { eventID: eventId });
                     fetch("/api/track", {
                       method: "POST",
