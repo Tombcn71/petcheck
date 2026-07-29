@@ -8,6 +8,7 @@ import { nlNL } from "@clerk/localizations";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { CookieBanner } from "@/components/CookieBanner";
 import { TopBanner } from "@/components/TopBanner";
+import { FacebookPixel } from "@/components/FacebookPixel";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -67,6 +68,7 @@ export default function RootLayout({
       <html lang="nl" className="scroll-smooth">
         <body
           className={`${jakarta.variable} ${geistMono.variable} font-jakarta antialiased`}>
+          <FacebookPixel />
           <TooltipProvider delayDuration={0}>
             <TopBanner />
             <Navbar />
