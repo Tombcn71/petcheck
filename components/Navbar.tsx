@@ -59,7 +59,14 @@ export default function Navbar() {
                   className="font-bold text-slate-700 text-xs uppercase hover:text-[#4FC3F7]">
                   Inloggen
                 </Link>
-                <Link href="/signup?redirect_url=/onboarding">
+                <Link
+                  href="/signup?redirect_url=/onboarding"
+                  onClick={() => {
+                    if (!localStorage.getItem("fb-lead-fired")) {
+                      window.fbq?.("track", "Lead");
+                      localStorage.setItem("fb-lead-fired", "1");
+                    }
+                  }}>
                   <Button className="bg-[#1A1A2E] hover:bg-[#4FC3F7] text-white px-6 h-11 rounded-xl font-bold uppercase text-[10px]">
                     Start gratis week
                   </Button>
@@ -120,7 +127,14 @@ export default function Navbar() {
                       </SheetClose>
                       <Show when="signed-out">
                         <SheetClose asChild>
-                          <Link href="/signup?redirect_url=/onboarding">
+                          <Link
+                            href="/signup?redirect_url=/onboarding"
+                            onClick={() => {
+                              if (!localStorage.getItem("fb-lead-fired")) {
+                                window.fbq?.("track", "Lead");
+                                localStorage.setItem("fb-lead-fired", "1");
+                              }
+                            }}>
                             <Button className="w-full bg-[#1A1A2E] text-white h-14 rounded-2xl font-bold uppercase">
                               <Sparkles size={16} className="mr-2" /> Start
                               gratis week

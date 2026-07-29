@@ -107,7 +107,14 @@ export default function Home() {
         <div className="flex flex-col items-center gap-5 -mt-4">
           <div className="flex justify-center items-center gap-4">
             <Show when="signed-out">
-              <Link href="/signup?redirect_url=/onboarding">
+              <Link
+                href="/signup?redirect_url=/onboarding"
+                onClick={() => {
+                  if (!localStorage.getItem("fb-lead-fired")) {
+                    window.fbq?.("track", "Lead");
+                    localStorage.setItem("fb-lead-fired", "1");
+                  }
+                }}>
                 <Button
                   size="lg"
                   className="bg-[#1A1A2E] hover:bg-black text-white px-10 h-16 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-[#1A1A2E]/20">
