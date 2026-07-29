@@ -95,7 +95,7 @@ export default function Home() {
         </Badge>
 
         <h1 className="text-4xl md:text-7xl font-black   mb-8">
-          AI Gezondheidsscan <br />
+          AI Gezondheidsscan, <br />
           <span className="text-[#4FC3F7] ">voor jouw doggy.</span>
         </h1>
 
