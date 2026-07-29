@@ -86,10 +86,24 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
           <button
             onClick={() => {
-              window.fbq?.("track", "InitiateCheckout", {
-                value: 60,
-                currency: "EUR",
-              });
+              const eventId = crypto.randomUUID();
+              window.fbq?.(
+                "track",
+                "InitiateCheckout",
+                { value: 60, currency: "EUR" },
+                { eventID: eventId },
+              );
+              fetch("/api/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  eventName: "InitiateCheckout",
+                  eventId,
+                  value: 60,
+                  currency: "EUR",
+                }),
+                keepalive: true,
+              }).catch(() => {});
               window.location.href =
                 "/api/stripe/checkout?priceId=price_1TRDtmRK5rzSG2g7mqIpKZcW";
             }}

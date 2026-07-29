@@ -116,10 +116,34 @@ export default function Pricing() {
                 }
                 onClick={() => {
                   if (trialExpired) {
-                    window.fbq?.("track", "InitiateCheckout", {
-                      value: 60,
-                      currency: "EUR",
-                    });
+                    const eventId = crypto.randomUUID();
+                    window.fbq?.(
+                      "track",
+                      "InitiateCheckout",
+                      { value: 60, currency: "EUR" },
+                      { eventID: eventId },
+                    );
+                    fetch("/api/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        eventName: "InitiateCheckout",
+                        eventId,
+                        value: 60,
+                        currency: "EUR",
+                      }),
+                      keepalive: true,
+                    }).catch(() => {});
+                  } else if (!localStorage.getItem("fb-lead-fired")) {
+                    const eventId = crypto.randomUUID();
+                    window.fbq?.("track", "Lead", {}, { eventID: eventId });
+                    fetch("/api/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ eventName: "Lead", eventId }),
+                      keepalive: true,
+                    }).catch(() => {});
+                    localStorage.setItem("fb-lead-fired", "1");
                   }
                 }}>
                 {trialExpired ? "Activeer Jaarlijks" : "Start Gratis Week"}

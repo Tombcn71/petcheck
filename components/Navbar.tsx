@@ -63,7 +63,14 @@ export default function Navbar() {
                   href="/signup?redirect_url=/onboarding"
                   onClick={() => {
                     if (!localStorage.getItem("fb-lead-fired")) {
-                      window.fbq?.("track", "Lead");
+                      const eventId = crypto.randomUUID();
+                      window.fbq?.("track", "Lead", {}, { eventID: eventId });
+                      fetch("/api/track", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ eventName: "Lead", eventId }),
+                        keepalive: true,
+                      }).catch(() => {});
                       localStorage.setItem("fb-lead-fired", "1");
                     }
                   }}>
@@ -131,7 +138,14 @@ export default function Navbar() {
                             href="/signup?redirect_url=/onboarding"
                             onClick={() => {
                               if (!localStorage.getItem("fb-lead-fired")) {
-                                window.fbq?.("track", "Lead");
+                                const eventId = crypto.randomUUID();
+                                window.fbq?.("track", "Lead", {}, { eventID: eventId });
+                                fetch("/api/track", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ eventName: "Lead", eventId }),
+                                  keepalive: true,
+                                }).catch(() => {});
                                 localStorage.setItem("fb-lead-fired", "1");
                               }
                             }}>
