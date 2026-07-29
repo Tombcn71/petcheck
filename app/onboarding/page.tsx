@@ -58,15 +58,16 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     setIsSubmitting(true);
+    const eventId = crypto.randomUUID();
     try {
       const response = await fetch("/api/dogs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, eventId }),
       });
 
       if (response.ok) {
-        window.fbq?.("track", "CompleteRegistration");
+        window.fbq?.("track", "CompleteRegistration", {}, { eventID: eventId });
         window.location.href = "/dashboard";
       } else {
         const errorData = await response.json();

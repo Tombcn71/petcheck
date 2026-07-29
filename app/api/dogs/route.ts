@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { sendCapiEvent } from "@/lib/metaCapi";
 
 export async function GET() {
   try {
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
       weight,
       gender,
       sterilized,
+      eventId,
     } = body;
 
     let finalImageUrl = image_url;
@@ -61,10 +63,29 @@ export async function POST(req: Request) {
 
     const sql = neon(process.env.DATABASE_URL!);
 
+    const bestaandeHonden = await sql`
+      SELECT id FROM dogs WHERE user_id = ${userId} LIMIT 1
+    `;
+    const isEersteRegistratie = bestaandeHonden.length === 0;
+
     await sql`
       INSERT INTO dogs (user_id, name, breed, age, size, image_url, weight, gender, sterilized)
       VALUES (${userId}, ${name}, ${breed}, ${age}, ${size}, ${finalImageUrl}, ${weight}, ${gender}, ${sterilized})
     `;
+
+    if (isEersteRegistratie && eventId) {
+      const user = await currentUser();
+      sendCapiEvent({
+        eventName: "CompleteRegistration",
+        eventId,
+        eventSourceUrl: process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`
+          : "https://www.doggyscan.nl/onboarding",
+        email: user?.emailAddresses[0]?.emailAddress,
+        ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+        userAgent: req.headers.get("user-agent") || undefined,
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ success: true, url: finalImageUrl });
   } catch (error: any) {

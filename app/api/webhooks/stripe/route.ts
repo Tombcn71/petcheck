@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { createClerkClient } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless"; // Importeer de Neon client
+import { sendCapiEvent } from "@/lib/metaCapi";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-04-22.dahlia",
@@ -62,6 +63,20 @@ export async function POST(req: Request) {
       console.log(
         `✅ Business sync compleet: Clerk & Neon geüpdatet voor ${clerkUserId}`,
       );
+
+      // --- STAP 3: PURCHASE NAAR META CONVERSIONS API ---
+      sendCapiEvent({
+        eventName: "Purchase",
+        eventId: session.id,
+        eventSourceUrl: process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+          : "https://www.doggyscan.nl/dashboard",
+        email: session.customer_details?.email || session.customer_email || undefined,
+        customData: {
+          value: (session.amount_total ?? 0) / 100,
+          currency: session.currency?.toUpperCase() || "EUR",
+        },
+      }).catch(() => {});
     } catch (error) {
       console.error("❌ Database of Clerk update gefaald:", error);
       return new NextResponse("Sync fout", { status: 500 });

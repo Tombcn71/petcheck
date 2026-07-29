@@ -102,10 +102,15 @@ function DashboardContent() {
 
     const alGeteld = sessionStorage.getItem("fb-purchase-" + sessionId);
     if (!alGeteld) {
-      window.fbq?.("track", "Purchase", {
-        value: Number(searchParams.get("value")) || 0,
-        currency: searchParams.get("currency") || "EUR",
-      });
+      window.fbq?.(
+        "track",
+        "Purchase",
+        {
+          value: Number(searchParams.get("value")) || 0,
+          currency: searchParams.get("currency") || "EUR",
+        },
+        { eventID: sessionId },
+      );
       sessionStorage.setItem("fb-purchase-" + sessionId, "1");
     }
 
