@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const user = await currentUser().catch(() => null);
     const origin = req.headers.get("origin") || "https://www.doggyscan.nl";
 
-    await sendCapiEvent({
+    const result = await sendCapiEvent({
       eventName,
       eventId,
       eventSourceUrl: origin,
@@ -26,8 +26,11 @@ export async function POST(req: Request) {
       customData: value ? { value, currency: currency || "EUR" } : undefined,
     });
 
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Tracking mislukt" }, { status: 500 });
+    return NextResponse.json({ success: true, meta: result });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Tracking mislukt", detail: String(err) },
+      { status: 500 },
+    );
   }
 }

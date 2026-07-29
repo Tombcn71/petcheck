@@ -16,7 +16,9 @@ export async function sendCapiEvent(params: {
   userAgent?: string;
   customData?: Record<string, unknown>;
 }) {
-  if (!PIXEL_ID || !ACCESS_TOKEN) return;
+  if (!PIXEL_ID || !ACCESS_TOKEN) {
+    return { ok: false, detail: "PIXEL_ID of ACCESS_TOKEN ontbreekt op de server" };
+  }
 
   const userData: Record<string, unknown> = {};
   if (params.email) userData.em = [hashEmail(params.email)];
@@ -44,10 +46,14 @@ export async function sendCapiEvent(params: {
         }),
       },
     );
+    const text = await res.text();
     if (!res.ok) {
-      console.error("Meta CAPI fout:", await res.text());
+      console.error("Meta CAPI fout:", text);
+      return { ok: false, detail: text };
     }
+    return { ok: true, detail: text };
   } catch (err) {
     console.error("Meta CAPI request mislukt:", err);
+    return { ok: false, detail: String(err) };
   }
 }
