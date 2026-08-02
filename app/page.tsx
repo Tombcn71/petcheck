@@ -96,7 +96,7 @@ export default function Home() {
         </Badge>
 
         <h1 className="text-4xl md:text-7xl font-black   mb-8">
-          Slimme ondersteuning voor, <br />
+          Slimme ondersteuning voor <br />
           <span className="text-[#4FC3F7] ">elke hondenbezitter.</span>
         </h1>
 
