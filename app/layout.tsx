@@ -22,8 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Doggyscan.nl - Slimme zorg voor je hond",
-  description: "AI-gestuurde gezondheidscheck voor honden",
+  title: "Doggyscan.nl - Slimme ondersteuning voor elke hondenbezitter",
+  description:
+    "Scan je hond met A.I. op de 12 meest voorkomende ziektebeelden. Simpel met je telefoon. 24/7.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
