@@ -101,8 +101,9 @@ export default function Home() {
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          Geavanceerde symptoom-analyse en automatische dossieropbouw. Slimme
-          ondersteuning voor elke hondenbezitter, 24/7 beschikbaar.
+          Scan je hond met A.I. op de 12 meest voorkomende ziektebeelden. Slimme
+          ondersteuning voor elke hondenbezitter, 24/7 beschikbaar. Simpel met
+          je telefoon.
         </p>
 
         <div className="flex flex-col items-center gap-5 -mt-4">
