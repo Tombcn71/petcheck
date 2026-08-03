@@ -101,8 +101,8 @@ export default function Home() {
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          Scan je hond op de 12 meest voorkomende ziektebeelden. <br />
-          Simpel met je telefoon 24/7, met behulp van A.I.
+          Scan je hond op de 12 meest voorkomende ziektebeelden. Simpel met je
+          telefoon 24/7, met behulp van A.I.
         </p>
 
         <div className="flex flex-col items-center gap-5 -mt-4">
