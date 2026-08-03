@@ -95,14 +95,14 @@ export default function Home() {
           Next-Gen Veterinary AI
         </Badge>
 
-        <h1 className="text-4xl md:text-7xl font-black   mb-8">
+        <h1 className="text-[24px] leading-tight md:text-7xl md:leading-normal font-black mb-8">
           Slimme ondersteuning voor <br />
-          <span className="text-[#4FC3F7] ">elke hondenbezitter.</span>
+          <span className="text-[#4FC3F7]">elke hondenbezitter.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-[#6B6B8A] max-w-[700px] mx-auto mb-12 leading-relaxed font-medium">
-          Scan je hond met A.I. op de 12 meest voorkomende ziektebeelden. <br />
-          Simpel met je telefoon. 24/7
+          Scan je hond op de 12 meest voorkomende ziektebeelden. <br />
+          Simpel met je telefoon 24/7, met behulp van A.I.
         </p>
 
         <div className="flex flex-col items-center gap-5 -mt-4">
