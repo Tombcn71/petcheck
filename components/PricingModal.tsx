@@ -66,7 +66,7 @@ export function PricingModal({ isOpen, onClose, dogId }: PricingModalProps) {
 
           <ul className="space-y-3 mb-6 flex-grow text-left">
             {[
-              "Toegang voor 3 honden",
+              "Toegang voor 2 honden",
               "Onbeperkte AI-gezondheidsscans",
               "Historisch medisch dossier",
               "PDF rapport voor de dierenarts",

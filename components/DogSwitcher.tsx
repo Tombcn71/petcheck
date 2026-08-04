@@ -57,8 +57,8 @@ export function DogSwitcher({ allDogs = [], dogIdFromUrl }: DogSwitcherProps) {
           );
         })}
 
-      {/* Toon de plus-knop altijd (zolang er < 3 honden zijn) */}
-      {allDogs.length < 3 && (
+      {/* Toon de plus-knop altijd (zolang er < 2 honden zijn) */}
+      {allDogs.length < 2 && (
         <Link
           href="/onboarding"
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 hover:border-[#4FC3F7] transition-all text-slate-500 hover:text-[#4FC3F7] group h-11.5">

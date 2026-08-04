@@ -17,7 +17,7 @@ export default function Pricing() {
     (trialEndsAt ? new Date(trialEndsAt).getTime() < Date.now() : false);
 
   const features = [
-    "Toegang voor 3 honden",
+    "Toegang voor 2 honden",
     "Onbeperkte AI-gezondheidsscans",
     "Historisch medisch dossier",
     "PDF rapport voor de dierenarts",

@@ -10,29 +10,40 @@ import {
 
 const faqs = [
   {
+    question: "Vervangt deze app een bezoek aan de dierenarts?",
+    answer:
+      "Nee, Doggyscan.nl is een preventief hulpmiddel. Het helpt je om symptomen vroegtijdig te herkennen en geeft je een analyse dat je kunt delen met je dierenarts. Bij spoed moet je altijd direct contact opnemen met een specialist.",
+  },
+  {
     question: "Welke 12 ziektebeelden kan de AI herkennen?",
     answer:
       "AI is getraind op tienduizenden klinische beelden en herkent onder andere pijnsignalen, kan een ontlastingsanalyse doen, herkent houdingsproblemen, huidinfecties, hotspots, teken/vlooien, oogontstekingen, tekenen van staar, oorproblemen en diverse huiduitslag. Het pro plan geeft je toegang tot de volledige database.",
   },
   {
-    question: "Vervangt deze app een bezoek aan de dierenarts?",
+    question: "`Zit ik ergens aan vast na de proefperiode?",
     answer:
-      "Nee, Doggyscan.nl is een preventief hulpmiddel. Het helpt je om symptomen vroegtijdig te herkennen en geeft je een medisch rapport dat je kunt delen met je dierenarts. Bij spoed moet je altijd direct contact opnemen met een specialist.",
+      "Nee. je zit nergens aan vast je hoeft ook geen betaalgegevens op te geven dus er word niet ineens iets afgeschreven. We hopen natuurlijk wel dat je de app zo handig vind voor je viervoeter dat je besluit om met ons door te gaan.",
+  },
+  {
+    question: "`Zit ik ergens aan vast na de proefperiode?",
+    answer:
+      "Nee. je zit nergens aan vast je hoeft ook geen betaalgegevens op te geven dus er word niet ineens iets afgeschreven. We hopen natuurlijk wel dat je de app zo handig vind voor je viervoeter dat je besluit om met ons door te gaan.",
   },
   {
     question: "Hoe nauwkeurig is de AI-scan?",
     answer:
       "De nauwkeurigheid ligt momenteel boven de 90% voor de meest voorkomende hondenkwalen. Voor een optimaal resultaat raden we aan om foto's te maken bij goed daglicht en scherp te stellen op het probleemgebied.",
   },
-  {
-    question: "Can ik mijn abonnement op elk moment opzeggen?",
-    answer:
-      "Zeker. We werken niet met wurgcontracten. Je kunt plan op elk moment met één klik stopzetten via je profielinstellingen. Je behoudt toegang tot je historie tot het einde van je factuurperiode.",
-  },
+
   {
     question: "Hoe werkt de optie voor meerdere honden?",
     answer:
-      "In ons plan betaal je een vast bedrag je mag tot 3 honden toevoegen. Zo blijven analyses betaalbaar voor gezinnen met meerdere viervoeters.",
+      "In ons plan betaal je een vast bedrag je mag tot 2 honden toevoegen. Zo blijven analyses betaalbaar voor gezinnen met meerdere viervoeters.",
+  },
+  {
+    question: "Is het geschikt voor alle honden?",
+    answer:
+      "Jazeker de app is geschikt voor alle type viervoeters, van groot tot klein.",
   },
 ];
 

@@ -8,7 +8,6 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-white font-jakarta antialiased">
       <div className="max-w-2xl mx-auto px-6 py-16 md:py-24">
-
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4FC3F7] mb-12 transition-colors">
@@ -23,16 +22,19 @@ export default function PrivacyPage() {
         </p>
 
         <div className="space-y-10 text-sm text-slate-600 leading-relaxed">
-
           <section>
             <h2 className="text-xs font-black uppercase tracking-widest text-[#4FC3F7] mb-3">
               1. Wie zijn wij?
             </h2>
             <p>
-              Doggyscan.nl is een dienst van een eenmanszaak gevestigd in Nederland. Voor vragen over je privacy kun je contact opnemen via{" "}
-              <a href="mailto:info@doggyscan.nl" className="text-[#4FC3F7] hover:underline">
+              Doggyscan.nl is een dienst van een eenmanszaak. Voor vragen over
+              je privacy kun je contact opnemen via{" "}
+              <a
+                href="mailto:info@doggyscan.nl"
+                className="text-[#4FC3F7] hover:underline">
                 info@doggyscan.nl
-              </a>.
+              </a>
+              .
             </p>
           </section>
 
@@ -81,7 +83,8 @@ export default function PrivacyPage() {
               4. Delen wij jouw gegevens?
             </h2>
             <p className="mb-3">
-              Wij verkopen nooit persoonsgegevens aan derden. Wij maken gebruik van de volgende verwerkers:
+              Wij verkopen nooit persoonsgegevens aan derden. Wij maken gebruik
+              van de volgende verwerkers:
             </p>
             <ul className="space-y-2 list-none">
               {[
@@ -99,7 +102,9 @@ export default function PrivacyPage() {
               ))}
             </ul>
             <p className="mt-3">
-              Alle verwerkers zijn contractueel gebonden aan strikte dataverwerkingsovereenkomsten. Jouw gegevens worden opgeslagen en verwerkt op servers binnen de Europese Unie.
+              Alle verwerkers zijn contractueel gebonden aan strikte
+              dataverwerkingsovereenkomsten. Jouw gegevens worden opgeslagen en
+              verwerkt op servers binnen de Europese Unie.
             </p>
           </section>
 
@@ -108,7 +113,9 @@ export default function PrivacyPage() {
               5. Hoe lang bewaren wij jouw gegevens?
             </h2>
             <p>
-              Wij bewaren jouw gegevens zolang je een actief account hebt. Wanneer je jouw account verwijdert, worden alle bijbehorende gegevens binnen 30 dagen definitief gewist.
+              Wij bewaren jouw gegevens zolang je een actief account hebt.
+              Wanneer je jouw account verwijdert, worden alle bijbehorende
+              gegevens binnen 30 dagen definitief gewist.
             </p>
           </section>
 
@@ -117,7 +124,9 @@ export default function PrivacyPage() {
               6. Cookies
             </h2>
             <p>
-              Doggyscan.nl gebruikt functionele cookies die noodzakelijk zijn voor het werken van de app (inloggen, sessies). Wij gebruiken geen tracking- of advertentiecookies.
+              Doggyscan.nl gebruikt functionele cookies die noodzakelijk zijn
+              voor het werken van de app (inloggen, sessies). Wij gebruiken geen
+              tracking- of advertentiecookies.
             </p>
           </section>
 
@@ -125,7 +134,9 @@ export default function PrivacyPage() {
             <h2 className="text-xs font-black uppercase tracking-widest text-[#4FC3F7] mb-3">
               7. Jouw rechten
             </h2>
-            <p className="mb-3">Op grond van de AVG heb je de volgende rechten:</p>
+            <p className="mb-3">
+              Op grond van de AVG heb je de volgende rechten:
+            </p>
             <ul className="space-y-2 list-none">
               {[
                 "Inzage: je kunt opvragen welke gegevens wij van je hebben.",
@@ -142,7 +153,9 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               Stuur een e-mail naar{" "}
-              <a href="mailto:info@doggyscan.nl" className="text-[#4FC3F7] hover:underline">
+              <a
+                href="mailto:info@doggyscan.nl"
+                className="text-[#4FC3F7] hover:underline">
                 info@doggyscan.nl
               </a>{" "}
               om gebruik te maken van je rechten.
@@ -154,7 +167,10 @@ export default function PrivacyPage() {
               8. Medische disclaimer
             </h2>
             <p>
-              De analyses van Doggyscan.nl zijn gebaseerd op AI en zijn uitsluitend bedoeld als persoonlijk overzicht ter ondersteuning van een gesprek met een dierenarts. De resultaten vormen geen medische diagnose en mogen niet als zodanig worden gebruikt.
+              De analyses van Doggyscan.nl zijn gebaseerd op AI en zijn
+              uitsluitend bedoeld als persoonlijk overzicht ter ondersteuning
+              van een gesprek met een dierenarts. De resultaten vormen geen
+              medische diagnose en mogen niet als zodanig worden gebruikt.
             </p>
           </section>
 
@@ -163,7 +179,8 @@ export default function PrivacyPage() {
               9. Wijzigingen
             </h2>
             <p>
-              Wij kunnen dit privacybeleid aanpassen. Bij belangrijke wijzigingen informeren wij je via e-mail of een melding in de app.
+              Wij kunnen dit privacybeleid aanpassen. Bij belangrijke
+              wijzigingen informeren wij je via e-mail of een melding in de app.
             </p>
           </section>
 
@@ -173,16 +190,23 @@ export default function PrivacyPage() {
             </h2>
             <p>
               Vragen of opmerkingen over dit beleid? Neem contact op via{" "}
-              <a href="mailto:info@doggyscan.nl" className="text-[#4FC3F7] hover:underline">
+              <a
+                href="mailto:info@doggyscan.nl"
+                className="text-[#4FC3F7] hover:underline">
                 info@doggyscan.nl
               </a>
-              . Je hebt ook het recht een klacht in te dienen bij de Autoriteit Persoonsgegevens via{" "}
-              <a href="https://www.autoriteitpersoonsgegevens.nl" target="_blank" rel="noopener noreferrer" className="text-[#4FC3F7] hover:underline">
+              . Je hebt ook het recht een klacht in te dienen bij de Autoriteit
+              Persoonsgegevens via{" "}
+              <a
+                href="https://www.autoriteitpersoonsgegevens.nl"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#4FC3F7] hover:underline">
                 autoriteitpersoonsgegevens.nl
-              </a>.
+              </a>
+              .
             </p>
           </section>
-
         </div>
       </div>
     </main>
